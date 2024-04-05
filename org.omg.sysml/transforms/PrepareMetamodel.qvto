@@ -1,0 +1,99 @@
+/*****************************************************************************
+ * SysML 2 Pilot Implementation
+ * Copyright (c) 2019, 2022, 2023, 2024 Model Driven Solutions, Inc.
+ *    
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * @license LGPL-3.0-or-later <http://spdx.org/licenses/LGPL-3.0-or-later>
+ * 
+ * Contributors:
+ *  Ed Seidewitz
+ * 
+ *****************************************************************************/
+
+modeltype UML uses "http://www.eclipse.org/uml2/5.0.0/UML";
+
+transformation PrepareMetamodel(in export: UML, in standard: UML, out prepared: UML);
+
+property version = "20240201";
+
+main() {
+	run()
+}
+
+helper run() {
+	var syntax := export.objects()[Package]![name = "SysML Abstract Syntax"];
+	assert fatal (syntax <> null) with log ("Abstract Syntax not found.");
+	
+	var model = object Model { 
+		name := "sysml";
+		URI := "https://www.omg.org/spec/SysML/" + version;
+	};
+	
+	mapModel(syntax, model);
+	fixLiteralRational();	
+}
+
+helper mapModel(syntax : Package, model: Model) {
+	syntax.map Namespace(model);
+	model.packagedElement[Package]->destroy();
+}
+
+helper mapPackageNested(syntax : Package, subpackageName : String, inout model : Model) {
+	var subpackage = syntax.packagedElement[Package]![name = subpackageName];
+	if subpackage <> null then {
+		log("Package " + nameOf(subpackage) + " to " + nameOf(model));
+		model.packagedElement += subpackage;
+	} endif;
+}
+
+helper mapPackageFlat(syntax : Package, subpackageName : String, model : Model) {
+	var subpackage = syntax.packagedElement[Package]![name = subpackageName];
+	if subpackage <> null then {
+		subpackage.map Namespace(model);
+	} endif;
+}
+
+helper fixLiteralRational() {
+	var literalRationalClass = prepared.objects()[Class]![name = 'LiteralRational'];
+	if literalRationalClass <> null then {
+		var realType = standard.objects()[Package].member[PrimitiveType]![name = 'Real'];
+		if realType <> null then {
+			log("Changing LiteralRational::value type to " + nameOf(realType));
+			var valueFeature = literalRationalClass.ownedAttribute![name = 'value'];
+			valueFeature.type := realType;
+		} endif
+	} endif
+}
+
+mapping Package::Namespace(inout package: Package) 
+	when { self.name = null or not self.name.endsWith("TBD") } {
+	log("Package " + if self.namespace = null then "" else nameOf(self.namespace) + "::" endif + nameOf(self));
+	self.ownedMember[Package]->map Namespace(package);
+	if self <> package then {
+		package.packagedElement += self.packagedElement;
+	} endif;
+}
+
+query Property::featureQualifiedName(): String {
+	return nameOf(self.featuringClassifier![true]) + "::" + nameOf(self);
+}
+
+query nameOf(element: NamedElement): String {
+	return 
+		if element = null then "<null>"
+		else if element.name = null or element.name = "" then "<empty>"
+		else element.name
+		endif endif
+}

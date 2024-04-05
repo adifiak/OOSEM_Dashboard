@@ -1,0 +1,3 @@
+package Faek{
+	part FaekPart;
+}

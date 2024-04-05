@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: SysMLv2-Gamma Transformation
+Bundle-SymbolicName: hu.bme.mit.gamma.sysml.transformation
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: BME-FTSRG
+Automatic-Module-Name: hu.bme.mit.gamma.sysml.transformation
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Require-Bundle: com.google.guava,
+ org.eclipse.xtext.xbase.lib,
+ org.eclipse.xtend.lib,
+ org.eclipse.xtend.lib.macro,
+ org.omg.sysml
+Export-Package: hu.bme.mit.gamma.sysml.transformation,
+ hu.bme.mit.gamma.sysml.transformation.backannotation,
+ hu.bme.mit.gamma.sysml.transformation.util

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+  <extension point="org.eclipse.ui.commands">
+  
+    <command id="hu.bme.mit.gamma.sysml.transformation" name="Verify SysML Model"/>
+    
+  </extension>
+  <extension point="org.eclipse.ui.menus">
+    
+    <menuContribution allPopups="false" locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu">
+       <menu id="gammaProjectMenu"
+             label="Gamma Commands"
+             icon="icons/gamma-icon-16.png">
+	    <command commandId="hu.bme.mit.gamma.sysml.transformation" label="Atomize KerML Model" style="push">
+	    	<visibleWhen checkEnabled="false">
+            	<iterate ifEmpty="false" operator="or">
+					<test
+				    	property="org.eclipse.core.resources.name"
+				        value="*.sysml">
+				    </test>
+    			</iterate>
+            </visibleWhen>  
+	    </command>
+      </menu>
+    </menuContribution>
+    
+    <menuContribution allPopups="false" locationURI="popup:org.eclipse.jdt.ui.PackageExplorer">
+      <menu id="gammaPackageMenu"
+             label="Gamma Commands"
+             icon="icons/gamma-icon-16.png">
+	    <command commandId="hu.bme.mit.gamma.sysml.transformation" label="Atomize KerML Model" style="push">
+	    	<visibleWhen checkEnabled="false">
+            	<iterate ifEmpty="false" operator="or">
+					<test
+				    	property="org.eclipse.core.resources.name"
+				        value="*.sysml">
+				    </test>
+    			</iterate>
+            </visibleWhen>  
+	    </command>
+      </menu>
+    </menuContribution>
+  </extension>
+  
+  <extension point="org.eclipse.ui.handlers">
+    
+    <handler class="hu.bme.mit.kerml.atomizer.CommandHandler" commandId="hu.bme.mit.gamma.sysml.transformation"/>
+  	
+  </extension>
+  
+  <extension
+        point="org.eclipse.ui.views">
+     <e4view
+           class="hu.bme.mit.kerml.atomizer.views.OOSEMModelTreeView"
+           icon="icons/oosem-dashboard-icon.png"
+           id="hu.bme.mit.kerml.atomizer.OOSEMModelTreeView"
+           name="OOSEM Model Tree View"
+           restorable="true">
+     </e4view>
+  </extension>
+</plugin>
