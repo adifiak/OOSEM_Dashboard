@@ -8,7 +8,6 @@ import org.eclipse.xtext.xbase.lib.Exceptions;
 @SuppressWarnings("all")
 public class SpecificationToDesignGenerator {
   public static void generate(final BasicBlockGenerationData data) {
-    final String type = "part";
     StringConcatenation _builder = new StringConcatenation();
     _builder.append("package ");
     _builder.append(data.blockName);
@@ -27,7 +26,8 @@ public class SpecificationToDesignGenerator {
     _builder.newLine();
     _builder.append("    ");
     _builder.append("#design ");
-    _builder.append(type, "    ");
+    String _sysMLType = GeneratorUtils.getSysMLType(data.subjectSpecification);
+    _builder.append(_sysMLType, "    ");
     _builder.append(" ");
     _builder.append(data.blockName, "    ");
     _builder.append(" :> ");

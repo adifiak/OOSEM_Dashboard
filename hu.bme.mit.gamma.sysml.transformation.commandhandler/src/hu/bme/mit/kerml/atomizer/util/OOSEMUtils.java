@@ -10,6 +10,8 @@ import org.omg.sysml.lang.sysml.OccurrenceUsage;
 import org.omg.sysml.lang.sysml.Type;
 import org.omg.sysml.util.FeatureUtil;
 
+import hu.bme.mit.kerml.atomizer.util.OOSEMUtils.OOSEMBlockType;
+
 public class OOSEMUtils {
 	public enum OOSEMBlockType {
 		NONE, SPECIFICATION, DESIGN, INTEGRATION
@@ -50,30 +52,6 @@ public class OOSEMUtils {
 		}
 	}
 	
-	public static List<EObject> getPossibleImplementationsOfSpecification(EObject o){
-		if(o instanceof Type d && getOOSEMBlockType(d) == OOSEMBlockType.SPECIFICATION) {
-			var defs = getOOSEMDefinitionsToUsage(d);
-			if(defs.size() > 0) {
-				var def = defs.get(0);
-				if(def instanceof OccurrenceDefinition spec) {
-					
-					
-					//TODO: Rendesen
-					/* var speci = spec.spe getOwnedSpecialization();
-					 * return speci.stream()
-							.map(p-> {System.out.println("Step1: " + p);return p;})
-							.map(p -> p.getSpecific())
-							.map(p-> {System.out.println("Step2: " + p);return p;})
-							.filter(OOSEMUtils::filterNamelessElements)
-							.filter(p -> getOOSEMBlockType(p) == OOSEMBlockType.DESIGN || getOOSEMBlockType(p) == OOSEMBlockType.INTEGRATION)
-							.map(p-> {System.out.println("Step3: " + p);return p;})
-							.collect(Collectors.toList());*/
-				}
-			}
-		}
-		return null;
-	}
-	
 	public static String getTextOfType(Type t) {
 		String res = t.getDeclaredName();
 		if (t instanceof OccurrenceUsage o) {
@@ -100,5 +78,35 @@ public class OOSEMUtils {
 		} else {
 			return null;
 		}
+	}
+	
+	public static String getDecoratedName(Type t) {
+		var res = OOSEMUtils.getTextOfType(t);
+		if (res != null && !res.isEmpty()) {
+			var blockType = OOSEMUtils.getOOSEMBlockType(t);
+			switch(blockType) {
+				case SPECIFICATION:
+					res = "🟣 " + res;//🔴
+					break;
+				case DESIGN:
+					res = "🟢 " + res;
+					break;
+				case INTEGRATION:
+					res = "🔵 " + res;
+					break;
+				default:
+			}
+		} else {
+			res = "UNKNOWN";
+		}
+		return res;
+	}
+	
+	public static boolean filterSpecification(EObject o) {
+		return getOOSEMBlockType(o) == OOSEMBlockType.SPECIFICATION;
+	}
+	
+	public static boolean filterDesignsAndInegrations(EObject o) {
+		return getOOSEMBlockType(o) == OOSEMBlockType.DESIGN || getOOSEMBlockType(o) == OOSEMBlockType.INTEGRATION;
 	}
 }

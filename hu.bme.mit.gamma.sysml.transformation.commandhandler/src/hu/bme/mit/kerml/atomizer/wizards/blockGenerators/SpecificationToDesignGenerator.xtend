@@ -6,15 +6,13 @@ import java.io.IOException
 class SpecificationToDesignGenerator {
 	static def void generate(BasicBlockGenerationData data) {
 		
-		val type = "part";  //TODO:Determine type based on Def.
-		
 		val content = '''
             package «data.blockName» {
             
                 private import OOSEM::OOSEM_Metadata::*;
                 private import «data.subjectSpecification.qualifiedName»;
 
-                #design «type» «data.blockName» :> «data.subjectSpecification.name» {
+                #design «GeneratorUtils.getSysMLType(data.subjectSpecification)» «data.blockName» :> «data.subjectSpecification.name» {
             		//TODO: Auto generated block skeleton
             	}
             }

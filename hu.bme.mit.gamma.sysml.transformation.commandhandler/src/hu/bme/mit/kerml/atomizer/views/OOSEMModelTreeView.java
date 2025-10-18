@@ -6,6 +6,7 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,6 +23,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
@@ -31,16 +34,23 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
 import org.omg.sysml.lang.sysml.Element;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.omg.sysml.lang.sysml.Type;
 
 import hu.bme.mit.kerml.atomizer.model.OOSEMProject;
-import hu.bme.mit.kerml.atomizer.model.OOSEMProject.BlockFamilyStructures;
 import hu.bme.mit.kerml.atomizer.util.OOSEMModelLoader;
+import hu.bme.mit.kerml.atomizer.util.OOSEMModelLoader.BlockFamilyStructures;
 import hu.bme.mit.kerml.atomizer.util.OOSEMUtils;
 import hu.bme.mit.kerml.atomizer.util.OOSEMUtils.OOSEMBlockType;
+import hu.bme.mit.kerml.atomizer.util.OpenInFileUtils;
 import hu.bme.mit.kerml.atomizer.wizards.blockGenerators.DesignToIntegrationWizard;
 import hu.bme.mit.kerml.atomizer.wizards.blockGenerators.SpecificationToDesignWizard;
 
@@ -154,9 +164,9 @@ public class OOSEMModelTreeView {
 		createSimpleOOSEMBlockView(specificationsSC, specificationContainer, "Specification Blocks",
 				specificationBlocks, true);
 		// Designs view
-		createOOSEMViewWithSuperTypes(designsSC, designContainer, designBlocks);
+		createOOSEMViewWithSuperTypes(designsSC, designContainer, designBlocks, "Designs of ");
 		// Integrations view
-		createOOSEMViewWithSuperTypes(integrationsSC, integrationContainer, integrationBlocks);
+		createOOSEMViewWithSuperTypes(integrationsSC, integrationContainer, integrationBlocks, "Integrations of ");
 	}
 
 	private void calculateScrolledCompositeSizes() {
@@ -196,21 +206,22 @@ public class OOSEMModelTreeView {
 	}
 
 	private void createOOSEMViewWithSuperTypes(ScrolledComposite scrolledComposite, Composite container,
-			BlockFamilyStructures blockFamilyStructures) {
+			BlockFamilyStructures blockFamilyStructures, String parentNamePrefix) {
 		var parentsAndChilds = blockFamilyStructures.getBlocksWithFamily();
 		var parentsOrdered = new ArrayList<>(parentsAndChilds.keySet());
 
 		parentsOrdered.sort(new OOSEMModelComperator());
 
 		for (var parentBlock : parentsOrdered) {
-			String parentName = (parentBlock instanceof Element e) ? e.getDeclaredName() : "NAME NOT FOUND";
+			String parentName = (parentBlock instanceof Element e) ? parentNamePrefix + e.getDeclaredName()
+					: "NAME NOT FOUND";
 			var roots = parentsAndChilds.get(parentBlock);
 			createViewBlock(scrolledComposite, container, parentName, roots, true);
 		}
 
 		var orphanBlocks = blockFamilyStructures.getOrphanedBlocks();
 		if (!orphanBlocks.isEmpty()) {
-			createViewBlock(scrolledComposite, container, "❌ Orphan blocks:", orphanBlocks, true);
+			createViewBlock(scrolledComposite, container, "❌ Orphan blocks", orphanBlocks, true);
 		}
 
 	}
@@ -222,17 +233,17 @@ public class OOSEMModelTreeView {
 		block.setLayout(new GridLayout(1, false));
 
 		Label title = new Label(block, SWT.NONE);
-		title.setText(parentName);
+		title.setText(parentName + ":");
 
 		TreeViewer treeViewer = new TreeViewer(block, SWT.BORDER);
 		treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		treeViewer.addTreeListener(new OOSEMTreeViewerListener(scrolledComposite, container, treeViewer));
 
 		treeViewer.setContentProvider(new OOSEMModelContentProvider());
-		treeViewer.setLabelProvider(new OOSEMModelLabelProvider());
+		treeViewer.setLabelProvider(new OOSEMModelLabelProvider(oosemProject.getValidationErrors()));
 		treeViewer.setComparator(new OOSEMViewComperator());
 		treeViewer.setInput((Object[]) roots.toArray());
-		
+
 		MenuManager menuMgr = new MenuManager();
 		menuMgr.setRemoveAllWhenShown(true);
 
@@ -243,17 +254,20 @@ public class OOSEMModelTreeView {
 			if (obj == null)
 				return;
 
-			manager.add(new Action("Print object") {
-				public void run() {
-					System.out.println(obj);
-				}
-			});
-			if(addIntegrationWizard) {
+			if (obj instanceof EObject eobj) {
+				manager.add(new Action("Open in Editor") {
+					public void run() {
+						OpenInFileUtils.openEditorForEObject(eobj);
+					}
+				});
+			}
+			
+			if (addIntegrationWizard) {
 				if (obj instanceof OccurrenceDefinition o && OOSEMUtils.getOOSEMBlockType(o) == OOSEMBlockType.DESIGN) {
 					manager.add(new Action("Generate Integration Block") {
 						public void run() {
 							WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-									new DesignToIntegrationWizard(o));
+									new DesignToIntegrationWizard(o, oosemProject));
 							dialog.open();
 						}
 					});
@@ -261,8 +275,30 @@ public class OOSEMModelTreeView {
 			}
 		});
 
-		// Attach menu to the tree
+		var tree = treeViewer.getTree();
+
 		treeViewer.getTree().setMenu(menuMgr.createContextMenu(treeViewer.getTree()));
+
+		tree.addMouseTrackListener(new MouseTrackAdapter() {
+			@Override
+			public void mouseHover(MouseEvent e) {
+
+				TreeItem item = tree.getItem(new org.eclipse.swt.graphics.Point(e.x, e.y));
+				var data = item.getData();
+				if (data != null && data instanceof Type t) {
+					var errors = oosemProject.getValidationErrors().get(data);
+					if (item != null && errors != null) {
+						var toolTip = "Errors for " + t.getName() + ":";
+						for (var err : errors) {
+							toolTip = toolTip + "\n - " + err;
+						}
+						tree.setToolTipText(toolTip);
+					} else {
+						tree.setToolTipText(null);
+					}
+				}
+			}
+		});
 	}
 
 	private void createSimpleOOSEMBlockView(ScrolledComposite scrolledComposite, Composite container, String labelText,
@@ -281,7 +317,7 @@ public class OOSEMModelTreeView {
 		treeViewer.addTreeListener(new OOSEMTreeViewerListener(scrolledComposite, container, treeViewer));
 
 		treeViewer.setContentProvider(new OOSEMModelContentProvider());
-		treeViewer.setLabelProvider(new OOSEMModelLabelProvider());
+		treeViewer.setLabelProvider(new OOSEMModelLabelProvider(oosemProject.getValidationErrors()));
 		treeViewer.setComparator(new OOSEMViewComperator());
 		treeViewer.setInput((Object[]) blocks.toArray());
 
@@ -295,12 +331,15 @@ public class OOSEMModelTreeView {
 			if (obj == null)
 				return;
 
-			manager.add(new Action("Print object") {
-				public void run() {
-					System.out.println(obj);
-				}
-			});
-			if(addDesignWizard) {
+			if (obj instanceof EObject eobj) {
+				manager.add(new Action("Open in Editor") {
+					public void run() {
+						OpenInFileUtils.openEditorForEObject(eobj);
+					}
+				});
+			}
+
+			if (addDesignWizard) {
 				if (obj instanceof OccurrenceDefinition o
 						&& OOSEMUtils.getOOSEMBlockType(o) == OOSEMBlockType.SPECIFICATION) {
 					manager.add(new Action("Generate Design Block") {
@@ -360,5 +399,4 @@ public class OOSEMModelTreeView {
 		private Composite container;
 		private TreeViewer treeViewer;
 	}
-
 }
