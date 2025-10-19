@@ -47,10 +47,11 @@ public class OOSEMModelLoader {
 		var designsWithIntegrations = collectBlocksAndTheirChilds(OOSEMBlockType.DESIGN, integrations);
 		
 		var validationErrors = new HashMap<EObject, List<String>>();
+		var validationWarnings = new HashMap<EObject, List<String>>();
 		
-		validateIntegration(validationErrors, designsWithIntegrations.blocksWithFamily);
+		validateIntegration(validationErrors, validationWarnings, designsWithIntegrations.blocksWithFamily);
 
-		return new OOSEMProject(specifications, designs, integrations, specsWithDesigns, designsWithIntegrations, validationErrors);
+		return new OOSEMProject(specifications, designs, integrations, specsWithDesigns, designsWithIntegrations, validationErrors, validationWarnings);
 	}
 	
 	private static void processFile(Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, String file) {
@@ -198,7 +199,7 @@ public class OOSEMModelLoader {
 				.collect(Collectors.toList());
 	}
 	
-	private static void validateIntegration(Map<EObject, List<String>> validationErrors, Map<EObject, Set<EObject>> designsWithIntegrations) {
+	private static void validateIntegration(Map<EObject, List<String>> validationErrors, Map<EObject, List<String>> validationWarnings, Map<EObject, Set<EObject>> designsWithIntegrations) {
 		var nonOrphanIntegrations = new HashSet<EObject>();
 		designsWithIntegrations.values().stream().forEach(p -> nonOrphanIntegrations.addAll(p));
 		for(var i : nonOrphanIntegrations) {
@@ -207,7 +208,7 @@ public class OOSEMModelLoader {
 						.filter(OOSEMUtils::filterSpecification)
 						.collect(Collectors.toList());
 				for(var s : ownedSpecifications) {
-					registerError(validationErrors, s, "Integrations of specificationBlocks is not permited.");
+					registerValidatorOutput(validationErrors, s, "Integrations of specificationBlocks is not permited.");
 				}
 			}
 		}
@@ -232,7 +233,7 @@ public class OOSEMModelLoader {
 					unintegratedSpecifications.removeAll(redefinedFeatures);
 					
 					if(!checkIfIntegrationIsRequired(redefinedFeatures, specs))
-						registerError(validationErrors, integratedBlock, "Unrequired integration of block.");
+						registerValidatorOutput(validationErrors, integratedBlock, "Unrequired integration of block.");
 				}
 				
 				if(!unintegratedSpecifications.isEmpty()) {
@@ -242,7 +243,7 @@ public class OOSEMModelLoader {
 						if(!first) { msg = msg + ",";first = false;}
 						msg = msg + " " + u.getName();
 					}
-					registerError(validationErrors, integration, msg);
+					registerValidatorOutput(validationWarnings, integration, msg);
 				}
 			}
 		}
@@ -255,12 +256,12 @@ public class OOSEMModelLoader {
 		return false;
 	}
 	
-	private static void registerError(Map<EObject, List<String>> validationErrors, EObject o, String msg) {
-		var errorList = validationErrors.get(o);
+	private static void registerValidatorOutput(Map<EObject, List<String>> validationOutputContainer, EObject o, String msg) {
+		var errorList = validationOutputContainer.get(o);
 		if(errorList == null) {
 			List<String> errors = new ArrayList<>();
 			errors.add(msg);
-			validationErrors.put(o, errors);
+			validationOutputContainer.put(o, errors);
 		} else {
 			errorList.add(msg);
 		}

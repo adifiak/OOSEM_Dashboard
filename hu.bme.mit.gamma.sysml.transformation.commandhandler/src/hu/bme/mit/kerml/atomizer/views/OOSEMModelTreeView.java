@@ -6,14 +6,12 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ITreeSelection;
@@ -35,10 +33,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 import org.omg.sysml.lang.sysml.Element;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 import org.eclipse.core.runtime.IStatus;
@@ -75,45 +69,44 @@ public class OOSEMModelTreeView {
 				.map(IProject::getName).forEach(p -> projectSelectionCombo.add(p));
 		projectSelectionCombo.select(0);
 
-		// Add a listener to react to selection changes
-		/*
-		 * projectSelectionCombo.addListener(SWT.Selection, event -> { int index =
-		 * projectSelectionCombo.getSelectionIndex(); String selected =
-		 * projectSelectionCombo.getItem(index); System.out.println("Selected: " +
-		 * selected); // TODO: do something when the selection changes });
-		 */
 		projectSelectionCombo.setLayoutData(new RowData(240, 30));
 
 		Button refreshButton = new Button(menuBar, SWT.PUSH | SWT.FILL);
-		refreshButton.setText("Refresh");
+		refreshButton.setText("Load");
+		refreshButton.setEnabled(false);
 		refreshButton.addListener(SWT.Selection, e -> {
 			String selected = projectSelectionCombo.getItem(projectSelectionCombo.getSelectionIndex());
-			if (!selected.equals(comboPlaceholder)) {
-				Job job = new Job("Refreshing data") {
-					@Override
-					protected IStatus run(IProgressMonitor monitor) {
-						monitor.beginTask("Loading data...", IProgressMonitor.UNKNOWN);
+			Job job = new Job("Refreshing data") {
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					monitor.beginTask("Loading data...", IProgressMonitor.UNKNOWN);
 
-						try {
-							refresh(selected);
-							return Status.OK_STATUS; // success
-						} catch (Exception e) {
-							return new Status(IStatus.ERROR, "OOSEMTreeViewer", "Something failed", e);
-						} finally {
-							monitor.done();
-						}
+					try {
+						refresh(selected);
+						return Status.OK_STATUS; // success
+					} catch (Exception e) {
+						return new Status(IStatus.ERROR, "OOSEMTreeViewer", "Something failed", e);
+					} finally {
+						monitor.done();
 					}
-				};
-				job.setUser(true);
-				job.setPriority(Job.LONG);
-				job.setSystem(false);
-				job.schedule();
-			} else {
-				MessageDialog.openError(Display.getCurrent().getActiveShell(), "Error",
-						"Please select a project to visualize.");
-			}
+				}
+			};
+			job.setUser(true);
+			job.setPriority(Job.LONG);
+			job.setSystem(false);
+			job.schedule();
+			refreshButton.setText("Refresh");
+			loadedProject = selected;
+
 		});
 		refreshButton.setLayoutData(new RowData(90, 30));
+
+		projectSelectionCombo.addListener(SWT.Selection, event -> {
+			int index = projectSelectionCombo.getSelectionIndex();
+			String selected = projectSelectionCombo.getItem(index);
+			refreshButton.setText(selected.equals(loadedProject) ? "Refresh" : "Load");
+			refreshButton.setEnabled(!selected.equals(comboPlaceholder));
+		});
 
 		viewBody = new Composite(parent, SWT.NONE);
 		viewBody.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -157,6 +150,7 @@ public class OOSEMModelTreeView {
 	private Composite integrationContainer;
 
 	private OOSEMProject oosemProject;
+	private String loadedProject = "";
 
 	private void createTreeViewers(Set<EObject> specificationBlocks, BlockFamilyStructures designBlocks,
 			BlockFamilyStructures integrationBlocks) {
@@ -240,7 +234,8 @@ public class OOSEMModelTreeView {
 		treeViewer.addTreeListener(new OOSEMTreeViewerListener(scrolledComposite, container, treeViewer));
 
 		treeViewer.setContentProvider(new OOSEMModelContentProvider());
-		treeViewer.setLabelProvider(new OOSEMModelLabelProvider(oosemProject.getValidationErrors()));
+		treeViewer.setLabelProvider(
+				new OOSEMModelLabelProvider(oosemProject.getValidationErrors(), oosemProject.getValidationWarnings()));
 		treeViewer.setComparator(new OOSEMViewComperator());
 		treeViewer.setInput((Object[]) roots.toArray());
 
@@ -261,10 +256,11 @@ public class OOSEMModelTreeView {
 					}
 				});
 			}
-			
+
 			if (addIntegrationWizard) {
 				if (obj instanceof OccurrenceDefinition o && OOSEMUtils.getOOSEMBlockType(o) == OOSEMBlockType.DESIGN) {
 					manager.add(new Action("Generate Integration Block") {
+
 						public void run() {
 							WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
 									new DesignToIntegrationWizard(o, oosemProject));
@@ -284,19 +280,33 @@ public class OOSEMModelTreeView {
 			public void mouseHover(MouseEvent e) {
 
 				TreeItem item = tree.getItem(new org.eclipse.swt.graphics.Point(e.x, e.y));
-				var data = item.getData();
-				if (data != null && data instanceof Type t) {
-					var errors = oosemProject.getValidationErrors().get(data);
-					if (item != null && errors != null) {
-						var toolTip = "Errors for " + t.getName() + ":";
-						for (var err : errors) {
-							toolTip = toolTip + "\n - " + err;
+				if (item == null) {
+					tree.setToolTipText(null);
+					return;
+				} else {
+					var data = item.getData();
+					if (data != null && data instanceof Type t) {
+						var errors = oosemProject.getValidationErrors().get(data);
+						var warnings = oosemProject.getValidationWarnings().get(data);
+						if (errors != null) {
+							var toolTip = "Errors for " + t.getName() + ":";
+							for (var err : errors) {
+								toolTip = toolTip + "\n - " + err;
+							}
+							tree.setToolTipText(toolTip);
+							return;
+						} else if (warnings != null) {
+							var toolTip = "Warnings for " + t.getName() + ":";
+							for (var war : warnings) {
+								toolTip = toolTip + "\n - " + war;
+							}
+							tree.setToolTipText(toolTip);
+							return;
 						}
-						tree.setToolTipText(toolTip);
-					} else {
-						tree.setToolTipText(null);
+
 					}
 				}
+				tree.setToolTipText(null);
 			}
 		});
 	}
@@ -317,7 +327,8 @@ public class OOSEMModelTreeView {
 		treeViewer.addTreeListener(new OOSEMTreeViewerListener(scrolledComposite, container, treeViewer));
 
 		treeViewer.setContentProvider(new OOSEMModelContentProvider());
-		treeViewer.setLabelProvider(new OOSEMModelLabelProvider(oosemProject.getValidationErrors()));
+		treeViewer.setLabelProvider(
+				new OOSEMModelLabelProvider(oosemProject.getValidationErrors(), oosemProject.getValidationWarnings()));
 		treeViewer.setComparator(new OOSEMViewComperator());
 		treeViewer.setInput((Object[]) blocks.toArray());
 
@@ -343,11 +354,13 @@ public class OOSEMModelTreeView {
 				if (obj instanceof OccurrenceDefinition o
 						&& OOSEMUtils.getOOSEMBlockType(o) == OOSEMBlockType.SPECIFICATION) {
 					manager.add(new Action("Generate Design Block") {
+
 						public void run() {
 							WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
 									new SpecificationToDesignWizard(o));
 							dialog.open();
 						}
+
 					});
 				}
 			}

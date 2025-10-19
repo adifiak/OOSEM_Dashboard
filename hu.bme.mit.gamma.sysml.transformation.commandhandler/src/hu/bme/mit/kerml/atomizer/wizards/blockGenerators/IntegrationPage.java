@@ -51,7 +51,11 @@ public class IntegrationPage extends WizardPage {
                     public String getText(Object element) {
                     	var block = ((OOSEMIntegrationConfig) element).getImplementation();
                     	if(block != null) {
-                    		return OOSEMUtils.getDecoratedName((Type)block);
+                    		var res = OOSEMUtils.getDecoratedName((Type)block);
+                    		if(data.project.getValidationWarnings().get(block) != null) {
+                    			res = res + " ⚠️";
+                    		}
+                    		return res;
                     	}
                     	return "Keep empty for now...";
                     }

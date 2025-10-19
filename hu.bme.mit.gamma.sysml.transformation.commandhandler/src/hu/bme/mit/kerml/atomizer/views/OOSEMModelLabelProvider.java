@@ -15,8 +15,9 @@ import org.omg.sysml.util.FeatureUtil;
 import hu.bme.mit.kerml.atomizer.util.OOSEMUtils;
 
 public class OOSEMModelLabelProvider extends LabelProvider {
-	OOSEMModelLabelProvider(Map<EObject, List<String>> validationErrors) {
+	OOSEMModelLabelProvider(Map<EObject, List<String>> validationErrors, Map<EObject, List<String>> validationWarnings) {
 		this.validationErrors = validationErrors;
+		this.validationWarnings = validationWarnings;
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -34,6 +35,8 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 			}
 			if(validationErrors.get(t) != null) {
 				res = res + " ❌";
+			} else if(validationWarnings.get(t) != null) {
+				res = res + " ⚠️";
 			}
 			return res;
 		}
@@ -41,4 +44,5 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 	}
 	
 	private final Map<EObject, List<String>> validationErrors;
+	private final Map<EObject, List<String>> validationWarnings;
 }

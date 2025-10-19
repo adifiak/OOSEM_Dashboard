@@ -18,13 +18,14 @@ import hu.bme.mit.kerml.atomizer.util.OOSEMUtils.OOSEMBlockType;
 import org.eclipse.emf.ecore.EObject;
 
 public class OOSEMProject {
-	public OOSEMProject(Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, BlockFamilyStructures specificationsWithDesigns, BlockFamilyStructures designsWithIntegrations, Map<EObject, List<String>> validationErrors) {
+	public OOSEMProject(Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, BlockFamilyStructures specificationsWithDesigns, BlockFamilyStructures designsWithIntegrations, Map<EObject, List<String>> validationErrors, Map<EObject, List<String>> validationWarnings) {
 		this.specifications = specifications;
 		this.designs = designs;
 		this.integrations = integrations;
 		this.specificationsWithDesigns = specificationsWithDesigns;
 		this.designsWithIntegrations = designsWithIntegrations;
 		this.validationErrors = validationErrors;
+		this.validationWarnings = validationWarnings;
 	}
 
 	public Set<EObject> getSpecifications() {
@@ -49,6 +50,10 @@ public class OOSEMProject {
 	
 	public Map<EObject, List<String>> getValidationErrors() {
 		return validationErrors;
+	}
+	
+	public Map<EObject, List<String>> getValidationWarnings() {
+		return validationWarnings;
 	}
 	
 	public List<EObject> getPossibleImplementationsOfSpecification(EObject o){
@@ -80,4 +85,5 @@ public class OOSEMProject {
 	private BlockFamilyStructures specificationsWithDesigns;
 	private BlockFamilyStructures designsWithIntegrations;
 	private Map<EObject, List<String>> validationErrors;
+	private Map<EObject, List<String>> validationWarnings;
 }
