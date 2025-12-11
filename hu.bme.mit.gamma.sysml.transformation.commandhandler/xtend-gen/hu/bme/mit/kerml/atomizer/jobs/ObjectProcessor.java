@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.xbase.lib.XbaseGenerated;
 import org.omg.sysml.lang.sysml.Classifier;
 import org.omg.sysml.lang.sysml.Element;
 import org.omg.sysml.lang.sysml.Namespace;
@@ -72,6 +73,7 @@ public class ObjectProcessor {
     System.out.println(("Can\'t handle EObject: " + object));
   }
 
+  @XbaseGenerated
   public static void executeTarget(final EObject p, final Collection<EObject> roots) {
     if (p instanceof PartDefinition) {
       _executeTarget((PartDefinition)p, roots);

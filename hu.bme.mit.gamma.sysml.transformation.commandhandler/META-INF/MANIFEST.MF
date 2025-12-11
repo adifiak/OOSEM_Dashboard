@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SysMLv2-Gamma Transformation Command Handler
-Bundle-SymbolicName: hu.bme.mit.kerml.atomizer;singleton:=true
+Bundle-SymbolicName: hu.bme.mit.sysml.oosem;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Import-Package: javax.annotation;version="[1.3.0,2.0.0]",
  javax.inject;version="[1.0.0,2.0.0]",

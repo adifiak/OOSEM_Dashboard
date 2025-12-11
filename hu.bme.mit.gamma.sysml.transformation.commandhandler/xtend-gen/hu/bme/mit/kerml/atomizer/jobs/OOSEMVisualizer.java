@@ -6,6 +6,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.xbase.lib.Conversions;
 import org.eclipse.xtext.xbase.lib.ExclusiveRange;
 import org.eclipse.xtext.xbase.lib.StringExtensions;
+import org.eclipse.xtext.xbase.lib.XbaseGenerated;
 import org.omg.sysml.lang.sysml.ConjugatedPortDefinition;
 import org.omg.sysml.lang.sysml.Element;
 import org.omg.sysml.lang.sysml.Feature;
@@ -190,6 +191,7 @@ public class OOSEMVisualizer {
     return "White";
   }
 
+  @XbaseGenerated
   public static void processNode(final EObject n) {
     if (n instanceof Namespace) {
       _processNode((Namespace)n);
@@ -203,6 +205,7 @@ public class OOSEMVisualizer {
     }
   }
 
+  @XbaseGenerated
   public static void drawNode(final Namespace p) {
     if (p instanceof PartDefinition) {
       _drawNode((PartDefinition)p);

@@ -1,6 +1,7 @@
 package hu.bme.mit.kerml.atomizer.wizards.blockGenerators;
 
 import java.util.Arrays;
+import org.eclipse.xtext.xbase.lib.XbaseGenerated;
 import org.omg.sysml.lang.sysml.ItemDefinition;
 import org.omg.sysml.lang.sysml.ItemUsage;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
@@ -45,6 +46,7 @@ public class GeneratorUtils {
     return "port";
   }
 
+  @XbaseGenerated
   public static String getSysMLType(final Type o) {
     if (o instanceof PartDefinition) {
       return _getSysMLType((PartDefinition)o);

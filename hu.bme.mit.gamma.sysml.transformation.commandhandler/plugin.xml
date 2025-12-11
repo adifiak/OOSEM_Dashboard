@@ -45,17 +45,17 @@
   
   <extension point="org.eclipse.ui.handlers">
     
-    <handler class="hu.bme.mit.kerml.atomizer.CommandHandler" commandId="hu.bme.mit.gamma.sysml.transformation"/>
+    <handler class="hu.bme.mit.sysml.oosem.CommandHandler" commandId="hu.bme.mit.gamma.sysml.transformation"/>
   	
   </extension>
   
   <extension
         point="org.eclipse.ui.views">
      <e4view
-           class="hu.bme.mit.kerml.atomizer.views.OOSEMModelTreeView"
+           class="hu.bme.mit.sysml.oosem.views.OOSEMModelTreeView"
            icon="icons/oosem-dashboard-icon.png"
            id="hu.bme.mit.kerml.atomizer.OOSEMModelTreeView"
-           name="OOSEM Model Tree View"
+           name="OOSEM Assistant"
            restorable="true">
      </e4view>
   </extension>
