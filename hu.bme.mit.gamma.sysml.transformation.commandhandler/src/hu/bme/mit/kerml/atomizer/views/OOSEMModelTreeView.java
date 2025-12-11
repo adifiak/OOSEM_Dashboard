@@ -155,7 +155,7 @@ public class OOSEMModelTreeView {
 	private void createTreeViewers(Set<EObject> specificationBlocks, BlockFamilyStructures designBlocks,
 			BlockFamilyStructures integrationBlocks) {
 		// Specifications Tree viewer
-		createSimpleOOSEMBlockView(specificationsSC, specificationContainer, "Specification Blocks",
+		createSimpleOOSEMBlockView(specificationsSC, specificationContainer, "Specification Blocks:",
 				specificationBlocks, true);
 		// Designs view
 		createOOSEMViewWithSuperTypes(designsSC, designContainer, designBlocks, "Designs of ");

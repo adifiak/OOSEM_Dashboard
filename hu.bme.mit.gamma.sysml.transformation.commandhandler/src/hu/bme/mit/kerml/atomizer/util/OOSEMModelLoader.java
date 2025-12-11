@@ -39,8 +39,10 @@ public class OOSEMModelLoader {
 		
 		var filePaths = getPathsForProject(projectName);
 		
+		ResourceSet resourceSet = new ResourceSetImpl();;
+		
 		for(var fp : filePaths) {
-			processFile(specifications, designs, integrations, fp);
+			processFile(resourceSet, specifications, designs, integrations, fp);
 		}
 		
 		var specsWithDesigns = collectBlocksAndTheirChilds(OOSEMBlockType.SPECIFICATION, designs);
@@ -54,8 +56,8 @@ public class OOSEMModelLoader {
 		return new OOSEMProject(specifications, designs, integrations, specsWithDesigns, designsWithIntegrations, validationErrors, validationWarnings);
 	}
 	
-	private static void processFile(Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, String file) {
-		var root = getRoot(file);
+	private static void processFile(ResourceSet resourceSet, Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, String file) {
+		var root = getRoot(resourceSet, file);
 		processNode(specifications, designs, integrations, root);
 	}
 	
@@ -110,10 +112,9 @@ public class OOSEMModelLoader {
 		return true;
 	}
 	
-	private static EObject getRoot(String path) {
+	private static EObject getRoot(ResourceSet resourceSet, String path) {
 		URI relativeUri = URI.createPlatformResourceURI(path, true);
 		
-		ResourceSet resourceSet = new ResourceSetImpl();
 		Resource resource = resourceSet.getResource(relativeUri, true);
 		EObject object = resource.getContents().get(0);
 		//TODO: Find out the meaning of PARSE_ALL

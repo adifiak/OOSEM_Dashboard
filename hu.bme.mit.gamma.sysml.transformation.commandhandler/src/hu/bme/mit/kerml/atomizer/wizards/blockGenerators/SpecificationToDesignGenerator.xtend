@@ -8,13 +8,12 @@ class SpecificationToDesignGenerator {
 		
 		val content = '''
             package «data.blockName» {
-            
                 private import OOSEM::OOSEM_Metadata::*;
                 private import «data.subjectSpecification.qualifiedName»;
 
-                #design «GeneratorUtils.getSysMLType(data.subjectSpecification)» «data.blockName» :> «data.subjectSpecification.name» {
-            		//TODO: Auto generated block skeleton
-            	}
+                #design «GeneratorUtils.getSysMLType(data.subjectSpecification)» def «data.blockName» :> «data.subjectSpecification.name» {
+                    //TODO: Auto-generated block skeleton
+                }
             }
         '''
         
