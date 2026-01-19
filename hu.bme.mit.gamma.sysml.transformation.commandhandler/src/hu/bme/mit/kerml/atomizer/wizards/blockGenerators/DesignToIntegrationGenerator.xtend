@@ -7,6 +7,7 @@ import org.eclipse.emf.ecore.EObject
 import hu.bme.mit.sysml.oosem.wizards.blockGenerators.BasicBlockGenerationData
 import hu.bme.mit.sysml.oosem.wizards.blockGenerators.IntegrationData
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils
+import hu.bme.mit.sysml.oosem.wizards.blockGenerators.GeneratorUtils
 
 class DesignToIntegrationGenerator {
 	static def void generate(BasicBlockGenerationData data, IntegrationData data2) {

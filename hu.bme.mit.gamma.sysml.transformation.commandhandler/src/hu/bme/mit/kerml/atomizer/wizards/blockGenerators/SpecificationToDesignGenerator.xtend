@@ -3,6 +3,7 @@ package hu.bme.mit.kerml.atomizer.wizards.blockGenerators
 import java.io.FileWriter
 import java.io.IOException
 import hu.bme.mit.sysml.oosem.wizards.blockGenerators.BasicBlockGenerationData
+import hu.bme.mit.sysml.oosem.wizards.blockGenerators.GeneratorUtils
 
 class SpecificationToDesignGenerator {
 	static def void generate(BasicBlockGenerationData data) {
