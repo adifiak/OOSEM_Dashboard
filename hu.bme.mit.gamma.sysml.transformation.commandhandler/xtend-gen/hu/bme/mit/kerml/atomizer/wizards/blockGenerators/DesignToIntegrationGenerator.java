@@ -1,6 +1,9 @@
 package hu.bme.mit.kerml.atomizer.wizards.blockGenerators;
 
-import hu.bme.mit.kerml.atomizer.util.OOSEMUtils;
+import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
+import hu.bme.mit.sysml.oosem.wizards.blockGenerators.BasicBlockGenerationData;
+import hu.bme.mit.sysml.oosem.wizards.blockGenerators.IntegrationData;
+import hu.bme.mit.sysml.oosem.wizards.blockGenerators.IntegrationPage;
 import java.io.FileWriter;
 import java.io.IOException;
 import org.eclipse.emf.ecore.EObject;

@@ -1,5 +1,6 @@
 package hu.bme.mit.kerml.atomizer.wizards.blockGenerators;
 
+import hu.bme.mit.sysml.oosem.wizards.blockGenerators.BasicBlockGenerationData;
 import java.io.FileWriter;
 import java.io.IOException;
 import org.eclipse.xtend2.lib.StringConcatenation;

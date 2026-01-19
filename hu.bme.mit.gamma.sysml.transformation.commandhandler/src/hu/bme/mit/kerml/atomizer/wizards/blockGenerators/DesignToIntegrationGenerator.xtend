@@ -4,7 +4,9 @@ import java.io.FileWriter
 import java.io.IOException
 import org.omg.sysml.lang.sysml.Type
 import org.eclipse.emf.ecore.EObject
-import hu.bme.mit.kerml.atomizer.util.OOSEMUtils
+import hu.bme.mit.sysml.oosem.wizards.blockGenerators.BasicBlockGenerationData
+import hu.bme.mit.sysml.oosem.wizards.blockGenerators.IntegrationData
+import hu.bme.mit.sysml.oosem.util.OOSEMUtils
 
 class DesignToIntegrationGenerator {
 	static def void generate(BasicBlockGenerationData data, IntegrationData data2) {
