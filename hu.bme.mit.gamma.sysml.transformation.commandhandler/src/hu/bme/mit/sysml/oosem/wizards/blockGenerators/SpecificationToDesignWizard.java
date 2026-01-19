@@ -3,8 +3,6 @@ package hu.bme.mit.sysml.oosem.wizards.blockGenerators;
 import org.eclipse.jface.wizard.Wizard;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 
-import hu.bme.mit.kerml.atomizer.wizards.blockGenerators.SpecificationToDesignGenerator;
-
 public class SpecificationToDesignWizard extends Wizard{
 	
 	private BasicBlockGenerationPage page;
