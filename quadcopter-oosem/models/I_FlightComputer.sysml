@@ -4,7 +4,8 @@ package I_FlightComputer {
     private import I_Firmware_Interrupt::I_Firmware_Interrupt;
 
     #integration part def I_FlightComputer :> D_FlightComputer {
-        #integration part  :>> firmware : I_Firmware_Interrupt;
+        #integration part asd :>> firmware : I_Firmware_Interrupt;
+        part resistor;
         //TODO: Auto-generated block skeleton
     }
 }

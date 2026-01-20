@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EObject;
 import org.omg.sysml.lang.sysml.Element;
+import org.omg.sysml.lang.sysml.Feature;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 import org.omg.sysml.lang.sysml.OccurrenceUsage;
 import org.omg.sysml.lang.sysml.Type;
@@ -22,11 +23,11 @@ public class OOSEMUtils {
 	        	boolean spec = false, desi = false, inte = false;
 	        	
 	        	for (var type : types) {
-	        		if(type.getDeclaredName().equals("SpecificationBlock")) {
+	        		if(type.effectiveName().equals("SpecificationBlock")) {
 	        			spec = true;
-	        		} else if(type.getDeclaredName().equals("DesignBlock")) {
+	        		} else if(type.effectiveName().equals("DesignBlock")) {
 	        			desi = true;
-	        		} else if(type.getDeclaredName().equals("IntegrationBlock")) {
+	        		} else if(type.effectiveName().equals("IntegrationBlock")) {
 	        			inte = true;
 	        		}
 	        	}
@@ -51,7 +52,7 @@ public class OOSEMUtils {
 	}
 	
 	public static String getTextOfType(Type t) {
-		String res = t.getDeclaredName();
+		String res = t.effectiveName();
 		if (t instanceof OccurrenceUsage o) {
 			var types = FeatureUtil.getAllTypesOf(o);
 			if (types.size() > 0) {
@@ -65,7 +66,13 @@ public class OOSEMUtils {
 	}
 	
 	public static boolean filterNamelessElements(Element e) {
-		return !(e.getDeclaredName() == null || e.getDeclaredName().isEmpty());
+		if(!(e.effectiveName() == null || e.effectiveName().isEmpty())) {
+			return true;
+		} else if(e instanceof Feature f){
+			return !FeatureUtil.getRedefinedFeaturesOf(f).isEmpty();
+		}
+		return false;
+		
 	}
 	
 	public static List<Type> getOOSEMDefinitionsToUsage(Type od) {
