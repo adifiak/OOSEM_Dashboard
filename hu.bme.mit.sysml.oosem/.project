@@ -3,6 +3,7 @@
 	<name>hu.bme.mit.sysml.oosem</name>
 	<comment></comment>
 	<projects>
+		<project>org.omg.sysml</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

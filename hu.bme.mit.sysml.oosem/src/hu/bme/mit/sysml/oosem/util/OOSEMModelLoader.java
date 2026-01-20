@@ -39,7 +39,7 @@ public class OOSEMModelLoader {
 		
 		var filePaths = getPathsForProject(projectName);
 		
-		ResourceSet resourceSet = new ResourceSetImpl();;
+		ResourceSet resourceSet = new ResourceSetImpl();
 		
 		for(var fp : filePaths) {
 			processFile(resourceSet, specifications, designs, integrations, fp);
