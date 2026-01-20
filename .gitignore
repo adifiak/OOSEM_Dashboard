@@ -14,4 +14,3 @@ org.eclipse.xtend.core.Xtend.prefs
 *.class
 *._trace
 *.xtendbin
-.classpath
