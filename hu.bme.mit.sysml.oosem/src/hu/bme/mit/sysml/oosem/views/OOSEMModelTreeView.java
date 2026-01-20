@@ -64,7 +64,9 @@ public class OOSEMModelTreeView {
 		// Create the Combo (drop-down list)
 		projectSelectionCombo = new Combo(menuBar, SWT.DROP_DOWN | SWT.READ_ONLY);
 		projectSelectionCombo.add(comboPlaceholder);
-		Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects()).stream().filter(p -> p.isOpen())
+		Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects()).stream()
+				.filter(p -> p.isOpen())
+				.filter(p -> !Arrays.asList("oosem", "sysml", "kerml", "sysml.library").contains(p.getName()))
 				.map(IProject::getName).forEach(p -> projectSelectionCombo.add(p));
 		projectSelectionCombo.select(0);
 
