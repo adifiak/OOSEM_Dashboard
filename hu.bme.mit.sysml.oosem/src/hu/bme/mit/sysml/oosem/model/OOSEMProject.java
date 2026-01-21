@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 import org.omg.sysml.lang.sysml.Type;
 
+import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader.BlockFamilyStructures;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
-import hu.bme.mit.sysml.oosem.util.OOSEMModelLoader.BlockFamilyStructures;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
 
 import org.eclipse.emf.ecore.EObject;
