@@ -18,7 +18,7 @@ import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
 import org.eclipse.emf.ecore.EObject;
 
 public class OOSEMProject {
-	public OOSEMProject(Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, BlockFamilyStructures specificationsWithDesigns, BlockFamilyStructures designsWithIntegrations, Map<EObject, List<String>> validationErrors, Map<EObject, List<String>> validationWarnings) {
+	public OOSEMProject(Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, BlockFamilyStructures specificationsWithDesigns, BlockFamilyStructures designsWithIntegrations, Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings) {
 		this.specifications = specifications;
 		this.designs = designs;
 		this.integrations = integrations;
@@ -48,11 +48,11 @@ public class OOSEMProject {
 		return designsWithIntegrations;
 	}
 	
-	public Map<EObject, List<String>> getValidationErrors() {
+	public Map<EObject, Set<String>> getValidationErrors() {
 		return validationErrors;
 	}
 	
-	public Map<EObject, List<String>> getValidationWarnings() {
+	public Map<EObject, Set<String>> getValidationWarnings() {
 		return validationWarnings;
 	}
 	
@@ -84,6 +84,6 @@ public class OOSEMProject {
 	private Set<EObject> integrations;
 	private BlockFamilyStructures specificationsWithDesigns;
 	private BlockFamilyStructures designsWithIntegrations;
-	private Map<EObject, List<String>> validationErrors;
-	private Map<EObject, List<String>> validationWarnings;
+	private Map<EObject, Set<String>> validationErrors;
+	private Map<EObject, Set<String>> validationWarnings;
 }

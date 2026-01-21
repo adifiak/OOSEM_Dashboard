@@ -14,7 +14,7 @@ import org.omg.sysml.util.FeatureUtil;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 
 public class OOSEMModelLabelProvider extends LabelProvider {
-	OOSEMModelLabelProvider(Map<EObject, List<String>> validationErrors, Map<EObject, List<String>> validationWarnings) {
+	OOSEMModelLabelProvider(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings) {
 		this.validationErrors = validationErrors;
 		this.validationWarnings = validationWarnings;
 	}
@@ -41,6 +41,6 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 		return "Unknown label for: " + element.getClass();
 	}
 	
-	private final Map<EObject, List<String>> validationErrors;
-	private final Map<EObject, List<String>> validationWarnings;
+	private final Map<EObject, Set<String>> validationErrors;
+	private final Map<EObject, Set<String>> validationWarnings;
 }

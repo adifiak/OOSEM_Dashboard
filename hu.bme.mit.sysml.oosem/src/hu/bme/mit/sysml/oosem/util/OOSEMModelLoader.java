@@ -48,9 +48,11 @@ public class OOSEMModelLoader {
 		var specsWithDesigns = collectBlocksAndTheirChilds(OOSEMBlockType.SPECIFICATION, designs);
 		var designsWithIntegrations = collectBlocksAndTheirChilds(OOSEMBlockType.DESIGN, integrations);
 		
-		var validationErrors = new HashMap<EObject, List<String>>();
-		var validationWarnings = new HashMap<EObject, List<String>>();
+		var validationErrors = new HashMap<EObject, Set<String>>();
+		var validationWarnings = new HashMap<EObject, Set<String>>();
 		
+		validateSpecification(validationErrors, validationWarnings, specifications);
+		validateDesign(validationErrors, validationWarnings, specsWithDesigns.blocksWithFamily);
 		validateIntegration(validationErrors, validationWarnings, designsWithIntegrations.blocksWithFamily);
 
 		return new OOSEMProject(specifications, designs, integrations, specsWithDesigns, designsWithIntegrations, validationErrors, validationWarnings);
@@ -115,16 +117,11 @@ public class OOSEMModelLoader {
 		
 		Resource resource = resourceSet.getResource(relativeUri, true);
 		EObject object = resource.getContents().get(0);
-		//TODO: Find out the meaning of PARSE_ALL
-		/*
-		resource = object.eResource();
-		resourceSet = resource.getResourceSet();
-		EcoreUtil.resolveAll(resourceSet);
-		*/
+		
 		return object;
 	}
 	
-	private static List<String> getPathsForProject(String projectName) { //"OOSEMTestProject"
+	private static List<String> getPathsForProject(String projectName) {
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot root = workspace.getRoot();
 		
@@ -144,7 +141,6 @@ public class OOSEMModelLoader {
 			            if(file.getFileExtension().equals("sysml")) {
 			            	System.out.println("File: " + file.getFullPath());
 			            	paths.add(file.getFullPath().toString());
-				            //roots.add(ModelLoader.getRoot(file.getFullPath().toString()));
 			            }
 			        }
 			        return true; // still visit children
@@ -198,7 +194,43 @@ public class OOSEMModelLoader {
 				.collect(Collectors.toList());
 	}
 	
-	private static void validateIntegration(Map<EObject, List<String>> validationErrors, Map<EObject, List<String>> validationWarnings, Map<EObject, Set<EObject>> designsWithIntegrations) {
+	private static void validateSpecification(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Set<EObject> specifications) {
+		for(var i : specifications) {
+			if(i instanceof OccurrenceDefinition o) {
+				var ownedDesignsAndIntegrations = o.getOwnedMember().stream()
+						.filter(OOSEMUtils::filterDesignsAndInegrations)
+						.collect(Collectors.toList());
+				
+				if(ownedDesignsAndIntegrations.isEmpty()) continue;
+					
+				for(var s : ownedDesignsAndIntegrations) {
+					registerValidatorOutput(validationErrors, s, "Specifications can not contain designs or integrations.");
+				}
+				registerValidatorOutput(validationErrors, o, "Errors present in children.");
+			}
+		}
+	}
+	
+	private static void validateDesign(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Map<EObject, Set<EObject>> specificationsWithDesigns) {
+		var nonOrphanDesigns = new HashSet<EObject>();
+		specificationsWithDesigns.values().stream().forEach(p -> nonOrphanDesigns.addAll(p));
+		for(var i : nonOrphanDesigns) {
+			if(i instanceof OccurrenceDefinition o) {
+				var ownedDesignsAndIntegrations = o.getOwnedMember().stream()
+						.filter(OOSEMUtils::filterDesignsAndInegrations)
+						.collect(Collectors.toList());
+				
+				if(ownedDesignsAndIntegrations.isEmpty()) continue;
+				
+				for(var s : ownedDesignsAndIntegrations) {
+					registerValidatorOutput(validationErrors, s, "Designs can only contain specifications.");
+				}
+				registerValidatorOutput(validationErrors, o, "Errors present in children.");
+			}
+		}
+	}
+	
+	private static void validateIntegration(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Map<EObject, Set<EObject>> designsWithIntegrations) {
 		var nonOrphanIntegrations = new HashSet<EObject>();
 		designsWithIntegrations.values().stream().forEach(p -> nonOrphanIntegrations.addAll(p));
 		for(var i : nonOrphanIntegrations) {
@@ -206,9 +238,13 @@ public class OOSEMModelLoader {
 				var ownedSpecifications = o.getOwnedMember().stream()
 						.filter(OOSEMUtils::filterSpecification)
 						.collect(Collectors.toList());
+				
+				if(ownedSpecifications.isEmpty()) continue;
+				
 				for(var s : ownedSpecifications) {
 					registerValidatorOutput(validationErrors, s, "Integrations of specificationBlocks is not permited.");
 				}
+				registerValidatorOutput(validationErrors, o, "Errors present in children.");
 			}
 		}
 		
@@ -224,6 +260,8 @@ public class OOSEMModelLoader {
 				
 				var unintegratedSpecifications = new ArrayList<>(specs);
 				
+				var errorInChildren = false;
+				
 				for(var integratedBlock : integratedBlocks) {
 					var redefinedFeatures = FeatureUtil.getAllRedefinedFeaturesOf((Feature)integratedBlock);
 					redefinedFeatures.remove(integratedBlock);
@@ -231,8 +269,15 @@ public class OOSEMModelLoader {
 					
 					unintegratedSpecifications.removeAll(redefinedFeatures);
 					
-					if(!checkIfIntegrationIsRequired(redefinedFeatures, specs))
+					if(!checkIfIntegrationIsRequired(redefinedFeatures, specs)) {
 						registerValidatorOutput(validationErrors, integratedBlock, "Unrequired integration of block.");
+						errorInChildren = true;
+					}
+						
+				}
+				
+				if(errorInChildren) {
+					registerValidatorOutput(validationErrors, integration, "Errors present in children.");
 				}
 				
 				if(!unintegratedSpecifications.isEmpty()) {
@@ -255,14 +300,14 @@ public class OOSEMModelLoader {
 		return false;
 	}
 	
-	private static void registerValidatorOutput(Map<EObject, List<String>> validationOutputContainer, EObject o, String msg) {
-		var errorList = validationOutputContainer.get(o);
-		if(errorList == null) {
-			List<String> errors = new ArrayList<>();
+	private static void registerValidatorOutput(Map<EObject, Set<String>> validationOutputContainer, EObject o, String msg) {
+		var errorSet = validationOutputContainer.get(o);
+		if(errorSet == null) {
+			Set<String> errors = new HashSet<>();
 			errors.add(msg);
 			validationOutputContainer.put(o, errors);
 		} else {
-			errorList.add(msg);
+			errorSet.add(msg);
 		}
 	}
 	

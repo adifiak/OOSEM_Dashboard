@@ -272,9 +272,9 @@ public class OOSEMModelTreeView {
 			}
 		});
 
-		var tree = treeViewer.getTree();
-
 		treeViewer.getTree().setMenu(menuMgr.createContextMenu(treeViewer.getTree()));
+		
+		var tree = treeViewer.getTree();
 
 		tree.addMouseTrackListener(new MouseTrackAdapter() {
 			@Override
@@ -369,6 +369,43 @@ public class OOSEMModelTreeView {
 
 		// Attach menu to the tree
 		treeViewer.getTree().setMenu(menuMgr.createContextMenu(treeViewer.getTree()));
+		
+		var tree = treeViewer.getTree();
+
+		tree.addMouseTrackListener(new MouseTrackAdapter() {
+			@Override
+			public void mouseHover(MouseEvent e) {
+
+				TreeItem item = tree.getItem(new org.eclipse.swt.graphics.Point(e.x, e.y));
+				if (item == null) {
+					tree.setToolTipText(null);
+					return;
+				} else {
+					var data = item.getData();
+					if (data != null && data instanceof Type t) {
+						var errors = oosemProject.getValidationErrors().get(data);
+						var warnings = oosemProject.getValidationWarnings().get(data);
+						if (errors != null) {
+							var toolTip = "Errors for " + t.getName() + ":";
+							for (var err : errors) {
+								toolTip = toolTip + "\n - " + err;
+							}
+							tree.setToolTipText(toolTip);
+							return;
+						} else if (warnings != null) {
+							var toolTip = "Warnings for " + t.getName() + ":";
+							for (var war : warnings) {
+								toolTip = toolTip + "\n - " + war;
+							}
+							tree.setToolTipText(toolTip);
+							return;
+						}
+
+					}
+				}
+				tree.setToolTipText(null);
+			}
+		});
 
 	}
 
