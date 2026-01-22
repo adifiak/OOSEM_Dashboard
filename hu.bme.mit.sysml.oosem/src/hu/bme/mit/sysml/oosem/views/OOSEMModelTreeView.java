@@ -2,28 +2,18 @@ package hu.bme.mit.sysml.oosem.views;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.viewers.ITreeSelection;
-import org.eclipse.jface.viewers.ITreeViewerListener;
-import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
@@ -33,81 +23,23 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.TreeItem;
 import org.omg.sysml.lang.sysml.Element;
-import org.omg.sysml.lang.sysml.OccurrenceDefinition;
-import org.omg.sysml.lang.sysml.Type;
 
 import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader;
 import hu.bme.mit.sysml.oosem.model.OOSEMProject;
 import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader.BlockFamilyStructures;
-import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
-import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
-import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
-import hu.bme.mit.sysml.oosem.wizards.blockGenerators.DesignToIntegrationWizard;
-import hu.bme.mit.sysml.oosem.wizards.blockGenerators.SpecificationToDesignWizard;
+import hu.bme.mit.sysml.oosem.views.listeners.ContextMenuListener;
+import hu.bme.mit.sysml.oosem.views.listeners.OOSEMTreeViewerListener;
+import hu.bme.mit.sysml.oosem.views.listeners.RefreshButtonListener;
+import hu.bme.mit.sysml.oosem.views.listeners.ShowValidationResultsMouseTracctListener;
+import hu.bme.mit.sysml.oosem.views.listeners.ContextMenuListener.*;;
 
 public class OOSEMModelTreeView {
-	private final String comboPlaceholder = "Choose project to visualize...";
-
 	@PostConstruct
 	public void createPartControl(Composite parent) {
 		parent.setLayout(new GridLayout(1, false));
 
-		menuBar = new Composite(parent, SWT.NONE);
-		RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
-		rowLayout.marginLeft = 0;
-		rowLayout.marginTop = 0;
-		rowLayout.spacing = 10;
-		menuBar.setLayout(rowLayout);
-
-		// Create the Combo (drop-down list)
-		projectSelectionCombo = new Combo(menuBar, SWT.DROP_DOWN | SWT.READ_ONLY);
-		projectSelectionCombo.add(comboPlaceholder);
-		Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects()).stream()
-				.filter(p -> p.isOpen())
-				.filter(p -> !Arrays.asList("oosem", "sysml", "kerml", "sysml.library").contains(p.getName()))
-				.map(IProject::getName).forEach(p -> projectSelectionCombo.add(p));
-		projectSelectionCombo.select(0);
-
-		projectSelectionCombo.setLayoutData(new RowData(240, 30));
-
-		Button refreshButton = new Button(menuBar, SWT.PUSH | SWT.FILL);
-		refreshButton.setText("Load");
-		refreshButton.setEnabled(false);
-		refreshButton.addListener(SWT.Selection, e -> {
-			String selected = projectSelectionCombo.getItem(projectSelectionCombo.getSelectionIndex());
-			Job job = new Job("Refreshing data") {
-				@Override
-				protected IStatus run(IProgressMonitor monitor) {
-					monitor.beginTask("Loading data...", IProgressMonitor.UNKNOWN);
-
-					try {
-						refresh(selected);
-						return Status.OK_STATUS; // success
-					} catch (Exception e) {
-						return new Status(IStatus.ERROR, "OOSEMAssistant", "Something failed", e);
-					} finally {
-						monitor.done();
-					}
-				}
-			};
-			job.setUser(true);
-			job.setPriority(Job.LONG);
-			job.setSystem(false);
-			job.schedule();
-			refreshButton.setText("Refresh");
-			loadedProject = selected;
-
-		});
-		refreshButton.setLayoutData(new RowData(90, 30));
-
-		projectSelectionCombo.addListener(SWT.Selection, event -> {
-			int index = projectSelectionCombo.getSelectionIndex();
-			String selected = projectSelectionCombo.getItem(index);
-			refreshButton.setText(selected.equals(loadedProject) ? "Refresh" : "Load");
-			refreshButton.setEnabled(!selected.equals(comboPlaceholder));
-		});
+		createMenuBar(parent);
 
 		viewBody = new Composite(parent, SWT.NONE);
 		viewBody.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -117,7 +49,7 @@ public class OOSEMModelTreeView {
 		layout.marginHeight = 0;
 		viewBody.setLayout(layout);
 	}
-
+	
 	public void refresh(String projectName) {
 		Display.getDefault().syncExec(() -> {
 			for (var child : viewBody.getChildren()) {
@@ -136,31 +68,47 @@ public class OOSEMModelTreeView {
 			calculateScrolledCompositeSizes();
 		});
 	}
+	
+	public void setLoadedProject(String lp) { loadedProject = lp; }
+	
+	public void setFocus() {/* treeViewer1.getControl().setFocus();*/}
 
-	private Composite menuBar;
-	private Composite viewBody;
+	private void createMenuBar(Composite parent) {
+		menuBar = new Composite(parent, SWT.NONE);
+		RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
+		rowLayout.marginLeft = 0;
+		rowLayout.marginTop = 0;
+		rowLayout.spacing = 10;
+		menuBar.setLayout(rowLayout);
 
-	private Combo projectSelectionCombo;
+		projectSelectionCombo = new Combo(menuBar, SWT.DROP_DOWN | SWT.READ_ONLY);
+		refreshButton = new Button(menuBar, SWT.PUSH | SWT.FILL);
+		
+		projectSelectionCombo.add(comboPlaceholder);
+		Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects()).stream()
+				.filter(p -> p.isOpen())
+				.filter(p -> !Arrays.asList("oosem", "sysml", "kerml", "sysml.library").contains(p.getName()))
+				.map(IProject::getName).forEach(p -> projectSelectionCombo.add(p));
+		projectSelectionCombo.select(0);
+		projectSelectionCombo.setLayoutData(new RowData(240, 30));
 
-	private ScrolledComposite specificationsSC;
-	private ScrolledComposite designsSC;
-	private ScrolledComposite integrationsSC;
+		refreshButton.setText("Load");
+		refreshButton.setEnabled(false);
+		refreshButton.addListener(SWT.Selection, new RefreshButtonListener(this, refreshButton, projectSelectionCombo).getListener());
+		refreshButton.setLayoutData(new RowData(90, 30));
 
-	private Composite specificationContainer;
-	private Composite designContainer;
-	private Composite integrationContainer;
+		projectSelectionCombo.addListener(SWT.Selection, event -> {
+			int index = projectSelectionCombo.getSelectionIndex();
+			String selected = projectSelectionCombo.getItem(index);
+			refreshButton.setText(selected.equals(loadedProject) ? "Refresh" : "Load");
+			refreshButton.setEnabled(!selected.equals(comboPlaceholder));
+		});
+	}
 
-	private OOSEMProject oosemProject;
-	private String loadedProject = "";
-
-	private void createTreeViewers(Set<EObject> specificationBlocks, BlockFamilyStructures designBlocks,
-			BlockFamilyStructures integrationBlocks) {
-		// Specifications Tree viewer
-		createSimpleOOSEMBlockView(specificationsSC, specificationContainer, "Specification Blocks:",
-				specificationBlocks, true);
-		// Designs view
+	private void createTreeViewers(Set<EObject> specificationBlocks, BlockFamilyStructures designBlocks, BlockFamilyStructures integrationBlocks) {
+		createViewBlock(specificationsSC, specificationContainer, new GridData(SWT.FILL, SWT.FILL, true, true), "Specification Blocks:",
+				specificationBlocks, Arrays.asList(MenuOptions::addShowInEditorToMenu, MenuOptions::addDesignWizardToMenu));
 		createOOSEMViewWithSuperTypes(designsSC, designContainer, designBlocks, "Designs of ");
-		// Integrations view
 		createOOSEMViewWithSuperTypes(integrationsSC, integrationContainer, integrationBlocks, "Integrations of ");
 	}
 
@@ -171,7 +119,6 @@ public class OOSEMModelTreeView {
 		designsSC.setMinSize(designContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		integrationsSC.setContent(integrationContainer);
 		integrationsSC.setMinSize(integrationContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-
 		viewBody.layout(true, true);
 	}
 
@@ -204,34 +151,38 @@ public class OOSEMModelTreeView {
 			BlockFamilyStructures blockFamilyStructures, String parentNamePrefix) {
 		var parentsAndChilds = blockFamilyStructures.getBlocksWithFamily();
 		var parentsOrdered = new ArrayList<>(parentsAndChilds.keySet());
-
 		parentsOrdered.sort(new OOSEMModelComparator());
 
 		for (var parentBlock : parentsOrdered) {
-			String parentName = (parentBlock instanceof Element e) ? parentNamePrefix + e.getDeclaredName()
-					: "NAME NOT FOUND";
+			String parentName = (parentBlock instanceof Element e) ? parentNamePrefix + e.getDeclaredName() + ":"
+					: "NAME NOT FOUND:";
 			var roots = parentsAndChilds.get(parentBlock);
-			createViewBlock(scrolledComposite, container, parentName, roots, true);
+			var layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+			List<addOptionToContextMenu> menuOptions = Arrays.asList(MenuOptions::addShowInEditorToMenu, MenuOptions::addIntegrationWizardToMenu);
+			createViewBlock(scrolledComposite, container, layoutData, parentName, roots, menuOptions);
 		}
 
 		var orphanBlocks = blockFamilyStructures.getOrphanedBlocks();
 		if (!orphanBlocks.isEmpty()) {
-			createViewBlock(scrolledComposite, container, "❌ Orphan blocks", orphanBlocks, true);
+			var layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+			createViewBlock(scrolledComposite, container, layoutData, "❌ Orphan blocks:", orphanBlocks, Arrays.asList()); //Cannot build on orphan blocks.
 		}
-
 	}
 
-	private void createViewBlock(ScrolledComposite scrolledComposite, Composite container, String parentName,
-			Set<EObject> roots, boolean addIntegrationWizard) {
+	private void createViewBlock(ScrolledComposite scrolledComposite, Composite container, Object layoutData, String labelText,
+			Set<EObject> roots, List<addOptionToContextMenu> contextMenuOptions) {
 		Composite block = new Composite(container, SWT.NONE);
-		block.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		block.setLayoutData(layoutData);
 		block.setLayout(new GridLayout(1, false));
 
-		Label title = new Label(block, SWT.NONE);
-		title.setText(parentName + ":");
+		if (labelText != null && !labelText.isEmpty()) {
+			Label title = new Label(block, SWT.NONE);
+			title.setText(labelText);
+		}
 
 		TreeViewer treeViewer = new TreeViewer(block, SWT.BORDER);
-		treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		var tree = treeViewer.getTree();
+		tree.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		treeViewer.addTreeListener(new OOSEMTreeViewerListener(scrolledComposite, container, treeViewer));
 
 		treeViewer.setContentProvider(new OOSEMModelContentProvider());
@@ -243,211 +194,27 @@ public class OOSEMModelTreeView {
 		MenuManager menuMgr = new MenuManager();
 		menuMgr.setRemoveAllWhenShown(true);
 
-		// Dynamically populate menu each time it is shown
-		menuMgr.addMenuListener(manager -> {
-			ITreeSelection selection = treeViewer.getStructuredSelection();
-			Object obj = selection.getFirstElement();
-			if (obj == null)
-				return;
-
-			if (obj instanceof EObject eobj) {
-				manager.add(new Action("Open in Editor") {
-					public void run() {
-						OpenInFileUtils.openEditorForEObject(eobj);
-					}
-				});
-			}
-
-			if (addIntegrationWizard) {
-				if (obj instanceof OccurrenceDefinition o && OOSEMUtils.getOOSEMBlockType(o) == OOSEMBlockType.DESIGN) {
-					manager.add(new Action("Generate Integration Block") {
-
-						public void run() {
-							WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-									new DesignToIntegrationWizard(o, oosemProject));
-							dialog.open();
-						}
-					});
-				}
-			}
-		});
-
-		treeViewer.getTree().setMenu(menuMgr.createContextMenu(treeViewer.getTree()));
-		
-		var tree = treeViewer.getTree();
-
-		tree.addMouseTrackListener(new MouseTrackAdapter() {
-			@Override
-			public void mouseHover(MouseEvent e) {
-
-				TreeItem item = tree.getItem(new org.eclipse.swt.graphics.Point(e.x, e.y));
-				if (item == null) {
-					tree.setToolTipText(null);
-					return;
-				} else {
-					var data = item.getData();
-					if (data != null && data instanceof Type t) {
-						var errors = oosemProject.getValidationErrors().get(data);
-						var warnings = oosemProject.getValidationWarnings().get(data);
-						if (errors != null) {
-							var toolTip = "Errors for " + t.getName() + ":";
-							for (var err : errors) {
-								toolTip = toolTip + "\n - " + err;
-							}
-							tree.setToolTipText(toolTip);
-							return;
-						} else if (warnings != null) {
-							var toolTip = "Warnings for " + t.getName() + ":";
-							for (var war : warnings) {
-								toolTip = toolTip + "\n - " + war;
-							}
-							tree.setToolTipText(toolTip);
-							return;
-						}
-
-					}
-				}
-				tree.setToolTipText(null);
-			}
-		});
+		menuMgr.addMenuListener(ContextMenuListener.getContextMenuListener(contextMenuOptions, treeViewer, oosemProject));
+		tree.setMenu(menuMgr.createContextMenu(tree));
+		tree.addMouseTrackListener(new ShowValidationResultsMouseTracctListener(tree, oosemProject));
 	}
+	
+	private Composite menuBar;
+	private Composite viewBody;
 
-	private void createSimpleOOSEMBlockView(ScrolledComposite scrolledComposite, Composite container, String labelText,
-			Set<EObject> blocks, boolean addDesignWizard) {
-		Composite block = new Composite(container, SWT.NONE);
-		block.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		block.setLayout(new GridLayout(1, false));
+	private Combo projectSelectionCombo;
+	private Button refreshButton;
 
-		if (labelText != null && !labelText.isEmpty()) {
-			Label title = new Label(block, SWT.NONE);
-			title.setText(labelText);
-		}
+	private ScrolledComposite specificationsSC;
+	private ScrolledComposite designsSC;
+	private ScrolledComposite integrationsSC;
 
-		TreeViewer treeViewer = new TreeViewer(block, SWT.BORDER);
-		treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-		treeViewer.addTreeListener(new OOSEMTreeViewerListener(scrolledComposite, container, treeViewer));
+	private Composite specificationContainer;
+	private Composite designContainer;
+	private Composite integrationContainer;
 
-		treeViewer.setContentProvider(new OOSEMModelContentProvider());
-		treeViewer.setLabelProvider(
-				new OOSEMModelLabelProvider(oosemProject.getValidationErrors(), oosemProject.getValidationWarnings()));
-		treeViewer.setComparator(new OOSEMViewComparator());
-		treeViewer.setInput((Object[]) blocks.toArray());
-
-		MenuManager menuMgr = new MenuManager();
-		menuMgr.setRemoveAllWhenShown(true);
-
-		// Dynamically populate menu each time it is shown
-		menuMgr.addMenuListener(manager -> {
-			ITreeSelection selection = treeViewer.getStructuredSelection();
-			Object obj = selection.getFirstElement();
-			if (obj == null)
-				return;
-
-			if (obj instanceof EObject eobj) {
-				manager.add(new Action("Open in Editor") {
-					public void run() {
-						OpenInFileUtils.openEditorForEObject(eobj);
-					}
-				});
-			}
-
-			if (addDesignWizard) {
-				if (obj instanceof OccurrenceDefinition o
-						&& OOSEMUtils.getOOSEMBlockType(o) == OOSEMBlockType.SPECIFICATION) {
-					manager.add(new Action("Generate Design Block") {
-
-						public void run() {
-							WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-									new SpecificationToDesignWizard(o));
-							dialog.open();
-						}
-
-					});
-				}
-			}
-		});
-
-		// Attach menu to the tree
-		treeViewer.getTree().setMenu(menuMgr.createContextMenu(treeViewer.getTree()));
-		
-		var tree = treeViewer.getTree();
-
-		tree.addMouseTrackListener(new MouseTrackAdapter() {
-			@Override
-			public void mouseHover(MouseEvent e) {
-
-				TreeItem item = tree.getItem(new org.eclipse.swt.graphics.Point(e.x, e.y));
-				if (item == null) {
-					tree.setToolTipText(null);
-					return;
-				} else {
-					var data = item.getData();
-					if (data != null && data instanceof Type t) {
-						var errors = oosemProject.getValidationErrors().get(data);
-						var warnings = oosemProject.getValidationWarnings().get(data);
-						if (errors != null) {
-							var toolTip = "Errors for " + t.getName() + ":";
-							for (var err : errors) {
-								toolTip = toolTip + "\n - " + err;
-							}
-							tree.setToolTipText(toolTip);
-							return;
-						} else if (warnings != null) {
-							var toolTip = "Warnings for " + t.getName() + ":";
-							for (var war : warnings) {
-								toolTip = toolTip + "\n - " + war;
-							}
-							tree.setToolTipText(toolTip);
-							return;
-						}
-
-					}
-				}
-				tree.setToolTipText(null);
-			}
-		});
-
-	}
-
-	// @Override
-	public void setFocus() {
-		// treeViewer1.getControl().setFocus();
-	}
-
-	private class OOSEMTreeViewerListener implements ITreeViewerListener {
-		public OOSEMTreeViewerListener(ScrolledComposite scrolledComposite, Composite container,
-				TreeViewer treeViewer) {
-			this.scrolledComposite = scrolledComposite;
-			this.container = container;
-			this.treeViewer = treeViewer;
-		}
-
-		@Override
-		public void treeExpanded(TreeExpansionEvent e) {
-			asyncRelayout();
-		}
-
-		@Override
-		public void treeCollapsed(TreeExpansionEvent e) {
-			asyncRelayout();
-		}
-
-		private void asyncRelayout() {
-			treeViewer.getTree().getDisplay().asyncExec(() -> {
-				if (!treeViewer.getTree().isDisposed()) {
-					treeViewer.getTree().getParent().layout(true, true);
-				}
-			});
-			scrolledComposite.getDisplay().asyncExec(() -> {
-				if (!scrolledComposite.getDisplay().isDisposed()) {
-					scrolledComposite.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-					scrolledComposite.layout(true, true);
-				}
-			});
-		}
-
-		private ScrolledComposite scrolledComposite;
-		private Composite container;
-		private TreeViewer treeViewer;
-	}
+	private OOSEMProject oosemProject;
+	private String loadedProject = "";
+	
+	private final String comboPlaceholder = "Choose project to visualize...";
 }

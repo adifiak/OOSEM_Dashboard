@@ -30,7 +30,7 @@ class DesignToIntegrationGenerator {
 							#«getMetadata(p.implementation)» «GeneratorUtils.getSysMLType(p.implementation as Type)»«IF data2.featureNames.get(p.specification) !== null»«data2.featureNames.get(p.specification)» «ENDIF»:>> «(p.specification as Type).name» : «(p.implementation as Type).name»;
 						«ENDIF»
 					«ENDFOR»
-				//TODO: Auto-generated block skeleton
+					//TODO: Auto-generated block skeleton
 			    }
 			}
 		'''

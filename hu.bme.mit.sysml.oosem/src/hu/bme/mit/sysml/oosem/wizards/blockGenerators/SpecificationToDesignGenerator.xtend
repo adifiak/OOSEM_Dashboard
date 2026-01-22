@@ -14,7 +14,7 @@ class SpecificationToDesignGenerator {
 			    private import «data.subjectSpecification.qualifiedName»;
 			
 			    #design «GeneratorUtils.getSysMLType(data.subjectSpecification)» def «data.blockName» :> «data.subjectSpecification.name» {
-			    //TODO: Auto-generated block skeleton
+			    	//TODO: Auto-generated block skeleton
 			    }
 			}
 		'''
