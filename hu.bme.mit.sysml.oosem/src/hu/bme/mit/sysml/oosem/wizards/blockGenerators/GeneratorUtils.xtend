@@ -8,6 +8,8 @@ import org.omg.sysml.lang.sysml.OccurrenceUsage
 import org.omg.sysml.lang.sysml.ItemUsage
 import org.omg.sysml.lang.sysml.PartUsage
 import org.omg.sysml.lang.sysml.PortUsage
+import org.eclipse.emf.ecore.EObject
+import hu.bme.mit.sysml.oosem.util.OOSEMUtils
 
 class GeneratorUtils {
 	def static dispatch String getSysMLType(OccurrenceDefinition o){
@@ -42,5 +44,20 @@ class GeneratorUtils {
 	
 	def static dispatch String getSysMLType(PortUsage o){
 		return "port"
+	}
+	
+	
+	
+	static def String getMetadata(EObject o){
+		switch(OOSEMUtils.getOOSEMBlockType(o)){
+			case SPECIFICATION:
+				return "specification"
+			case DESIGN:
+				return "design"
+			case INTEGRATION:
+				return "integration"
+			default:
+				return ""
+		}
 	}
 }

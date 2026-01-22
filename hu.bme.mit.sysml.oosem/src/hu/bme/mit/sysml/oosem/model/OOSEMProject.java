@@ -15,10 +15,12 @@ import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader.BlockFamilyStructures;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.emf.ecore.EObject;
 
 public class OOSEMProject {
-	public OOSEMProject(Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, BlockFamilyStructures specificationsWithDesigns, BlockFamilyStructures designsWithIntegrations, Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings) {
+	public OOSEMProject(IProject project, Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, BlockFamilyStructures specificationsWithDesigns, BlockFamilyStructures designsWithIntegrations, Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings) {
+		this.project = project;
 		this.specifications = specifications;
 		this.designs = designs;
 		this.integrations = integrations;
@@ -56,6 +58,10 @@ public class OOSEMProject {
 		return validationWarnings;
 	}
 	
+	public IProject getProject() {
+		return project;
+	}
+	
 	public List<EObject> getPossibleImplementationsOfSpecification(EObject o){
 		var res = new ArrayList<EObject>();
 		if(o instanceof Type d && OOSEMUtils.getOOSEMBlockType(d) == OOSEMBlockType.SPECIFICATION) {
@@ -79,6 +85,7 @@ public class OOSEMProject {
 		return res;
 	}
 
+	private IProject project;
 	private Set<EObject> specifications;
 	private Set<EObject> designs;
 	private Set<EObject> integrations;

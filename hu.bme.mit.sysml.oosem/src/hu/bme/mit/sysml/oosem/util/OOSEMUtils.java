@@ -23,6 +23,10 @@ public class OOSEMUtils {
 	        	boolean spec = false, desi = false, inte = false;
 	        	
 	        	for (var type : types) {
+	        		if(type.effectiveName() == null) {
+	        			System.err.print("Problem gettinng the type of: " + o.toString());
+	        			continue;
+	        		}
 	        		if(type.effectiveName().equals("SpecificationBlock")) {
 	        			spec = true;
 	        		} else if(type.effectiveName().equals("DesignBlock")) {

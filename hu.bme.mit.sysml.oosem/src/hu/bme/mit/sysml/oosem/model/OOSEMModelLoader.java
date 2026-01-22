@@ -17,6 +17,8 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -33,7 +35,7 @@ import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.*;
 
 public class OOSEMModelLoader {
-	public static OOSEMProject LoadModelFromOOSEMProject(String projectName) {
+	public static OOSEMProject LoadModelFromOOSEMProject(String projectName, IProgressMonitor monitor) {
 		Set<EObject> specifications = new HashSet<EObject>();
 		Set<EObject> designs = new HashSet<EObject>();
 		Set<EObject> integrations = new HashSet<EObject>();
@@ -42,8 +44,12 @@ public class OOSEMModelLoader {
 		
 		ResourceSet resourceSet = new ResourceSetImpl();
 		
+		SubMonitor subMonitor = SubMonitor.convert(monitor, filePaths.size());
+		
 		for(var fp : filePaths) {
+			subMonitor.setTaskName("Processing: " + fp);
 			processFile(resourceSet, specifications, designs, integrations, fp);
+			subMonitor.worked(1);
 		}
 		
 		var specsWithDesigns = collectBlocksAndTheirChilds(OOSEMBlockType.SPECIFICATION, designs);
@@ -56,7 +62,9 @@ public class OOSEMModelLoader {
 		OOSEMModelValidator.validateDesign(validationErrors, validationWarnings, specsWithDesigns.blocksWithFamily);
 		OOSEMModelValidator.validateIntegration(validationErrors, validationWarnings, designsWithIntegrations.blocksWithFamily);
 
-		return new OOSEMProject(specifications, designs, integrations, specsWithDesigns, designsWithIntegrations, validationErrors, validationWarnings);
+		var project = getProjectWithName(projectName);
+		
+		return new OOSEMProject(project, specifications, designs, integrations, specsWithDesigns, designsWithIntegrations, validationErrors, validationWarnings);
 	}
 	
 	private static void processFile(ResourceSet resourceSet, Set<EObject> specifications, Set<EObject> designs, Set<EObject> integrations, String file) {
@@ -123,12 +131,14 @@ public class OOSEMModelLoader {
 	}
 	
 	private static List<String> getPathsForProject(String projectName) {
+		IProject project = getProjectWithName(projectName);
+		return traverseProjectForPaths(project);
+	}
+
+	private static IProject getProjectWithName(String projectName) {
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot root = workspace.getRoot();
-		
-		IProject project = root.getProject(projectName);
-		
-		return traverseProjectForPaths(project);
+		return root.getProject(projectName);
 	}
 	
 	private static List<String> traverseProjectForPaths(IProject project) {

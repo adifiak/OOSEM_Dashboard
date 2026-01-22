@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -50,7 +51,7 @@ public class OOSEMModelTreeView {
 		viewBody.setLayout(layout);
 	}
 	
-	public void refresh(String projectName) {
+	public void refresh(String projectName, IProgressMonitor monitor) {
 		Display.getDefault().syncExec(() -> {
 			for (var child : viewBody.getChildren()) {
 				child.dispose();
@@ -58,7 +59,7 @@ public class OOSEMModelTreeView {
 			initViewBase(viewBody);
 		});
 
-		oosemProject = OOSEMModelLoader.LoadModelFromOOSEMProject(projectName);
+		oosemProject = OOSEMModelLoader.LoadModelFromOOSEMProject(projectName, monitor);
 		var specificationBlocks = oosemProject.getSpecifications();
 		var designBlocks = oosemProject.getSpecificationsWithTheirDesigns();
 		var integrationBlocks = oosemProject.getDesignsWithTheirIntegrations();

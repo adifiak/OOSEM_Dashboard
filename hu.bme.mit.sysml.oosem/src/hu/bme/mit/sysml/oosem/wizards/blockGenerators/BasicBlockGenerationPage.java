@@ -1,14 +1,18 @@
 package hu.bme.mit.sysml.oosem.wizards.blockGenerators;
 
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+
+import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 
 public class BasicBlockGenerationPage extends WizardPage {
 	
@@ -18,6 +22,10 @@ public class BasicBlockGenerationPage extends WizardPage {
         setDescription("Helps in generating the skeleton of a design block based on the underlying specification block.");
         this.data = data;
         this.defaultBlocknamePrefix = defaultBlocknamePrefix;
+        var dir = OpenInFileUtils.getFileForEObject(data.subjectSpecification).getParent();
+        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        String path = workspace.getRoot().getLocation().toString();
+        data.path = path + dir.getFullPath().toString();
 	}
 	
 	@Override
@@ -37,15 +45,18 @@ public class BasicBlockGenerationPage extends WizardPage {
 
         outputPathText = new Text(browseComp, SWT.BORDER);
         outputPathText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        outputPathText.setText(data.path);
 
         Button browseBtn = new Button(browseComp, SWT.PUSH);
         browseBtn.setText("Browse...");
         browseBtn.addListener(SWT.Selection, e -> {
-            FileDialog dialog = new FileDialog(getShell(), SWT.SAVE);
-            dialog.setFilterExtensions(new String[]{"*.sysml", "*.*"});
+        	DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.SAVE);
+        	dialog.setFilterPath(data.path);
             String path = dialog.open();
             if (path != null) outputPathText.setText(path);
         });
+        
+        refreshDataFromUI();
 
         setControl(container);
         setPageComplete(true);

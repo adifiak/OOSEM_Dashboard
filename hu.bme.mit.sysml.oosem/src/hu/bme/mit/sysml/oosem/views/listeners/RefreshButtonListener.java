@@ -26,7 +26,7 @@ public class RefreshButtonListener {
 					monitor.beginTask("Loading data...", IProgressMonitor.UNKNOWN);
 
 					try {
-						view.refresh(selected);
+						view.refresh(selected, monitor);
 						return Status.OK_STATUS; // success
 					} catch (Exception e) {
 						return new Status(IStatus.ERROR, "OOSEMAssistant", "Something failed", e);

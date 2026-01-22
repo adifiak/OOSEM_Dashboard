@@ -1,14 +1,11 @@
 package hu.bme.mit.sysml.oosem.wizards.blockGenerators
 
-import java.io.FileWriter
-import java.io.IOException
 import hu.bme.mit.sysml.oosem.wizards.blockGenerators.BasicBlockGenerationData
 import hu.bme.mit.sysml.oosem.wizards.blockGenerators.GeneratorUtils
 
 class SpecificationToDesignGenerator {
-	static def void generate(BasicBlockGenerationData data) {
-		
-		val content = '''
+	static def String generate(BasicBlockGenerationData data) {
+		return '''
 			package «data.blockName» {
 			    private import OOSEM::OOSEM_Metadata::*;
 			    private import «data.subjectSpecification.qualifiedName»;
@@ -18,13 +15,5 @@ class SpecificationToDesignGenerator {
 			    }
 			}
 		'''
-        
-        try {
-        	val writer = new FileWriter(data.path)
-            writer.write(content)
-            writer.close()
-        } catch (IOException e) {
-            e.printStackTrace()
-        }
 	}
 }

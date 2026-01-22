@@ -1,7 +1,10 @@
 package hu.bme.mit.sysml.oosem.wizards.blockGenerators;
 
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
+import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 
 import hu.bme.mit.sysml.oosem.model.OOSEMProject;
 
@@ -28,7 +31,9 @@ public class DesignToIntegrationWizard  extends Wizard{
         try {
         	page.refreshDataFromUI();
         	page2.refreshDataFromUI();
-        	DesignToIntegrationGenerator.generate(data, data2);
+        	var content = DesignToIntegrationGenerator.generate(data, data2);
+        	SysMLFileWriter.writeFile(data, content, data2.project);
+
             return true;
         } catch (Exception e) {
             //MessageDialog.openError(getShell(), "Error", e.getMessage());

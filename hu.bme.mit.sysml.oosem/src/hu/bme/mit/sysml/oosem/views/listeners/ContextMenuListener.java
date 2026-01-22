@@ -54,7 +54,7 @@ public class ContextMenuListener {
 				manager.add(new Action("Generate Design Block") {
 					public void run() {
 						WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-								new SpecificationToDesignWizard(od));
+								new SpecificationToDesignWizard(od, context));
 						dialog.open();
 					}
 				});
