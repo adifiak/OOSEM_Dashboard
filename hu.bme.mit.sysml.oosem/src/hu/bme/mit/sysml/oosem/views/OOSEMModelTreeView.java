@@ -171,7 +171,8 @@ public class OOSEMModelTreeView {
 		var orphanBlocks = blockFamilyStructures.getOrphanedBlocks();
 		if (!orphanBlocks.isEmpty()) {
 			var layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
-			createViewBlock(scrolledComposite, container, layoutData, "❌ Orphan blocks:", orphanBlocks, Arrays.asList()); //Cannot build on orphan blocks.
+			List<addOptionToContextMenu> menuOptions = Arrays.asList(MenuOptions::addShowInEditorToMenu, MenuOptions::addIntegrationWizardToMenu);
+			createViewBlock(scrolledComposite, container, layoutData, "Orphan blocks:", orphanBlocks, menuOptions);
 		}
 	}
 

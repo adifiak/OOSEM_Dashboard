@@ -51,25 +51,29 @@ public class ContextMenuListener {
 
 		public static void addDesignWizardToMenu(IMenuManager manager, Object item, OOSEMProject context) {
 			if (item instanceof OccurrenceDefinition od && OOSEMUtils.getOOSEMBlockType(od) == OOSEMBlockType.SPECIFICATION) {
-				manager.add(new Action("Generate Design Block") {
+				var action = new Action("Generate Design Block") {
 					public void run() {
 						WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
 								new SpecificationToDesignWizard(od, context));
 						dialog.open();
 					}
-				});
+				};
+				action.setEnabled(context.passedValidation(od));
+				manager.add(action);
 			}
 		}
 		
 		public static void addIntegrationWizardToMenu(IMenuManager manager, Object item, OOSEMProject context) {
-			if (item instanceof OccurrenceDefinition o && OOSEMUtils.getOOSEMBlockType(o) == OOSEMBlockType.DESIGN) {
-				manager.add(new Action("Generate Integration Block") {
+			if (item instanceof OccurrenceDefinition od && OOSEMUtils.getOOSEMBlockType(od) == OOSEMBlockType.DESIGN) {
+				var action = new Action("Generate Integration Block") {
 					public void run() {
 						WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-								new DesignToIntegrationWizard(o, context));
+								new DesignToIntegrationWizard(od, context));
 						dialog.open();
 					}
-				});
+				};
+				action.setEnabled(context.passedValidation(od));
+				manager.add(action);
 			}
 		}
 	}

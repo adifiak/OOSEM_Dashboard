@@ -62,6 +62,10 @@ public class OOSEMProject {
 		return project;
 	}
 	
+	public boolean passedValidation(EObject object) {
+		return !(validationErrors.containsKey(object) || validationWarnings.containsKey(object));
+	}
+	
 	public List<EObject> getPossibleImplementationsOfSpecification(EObject o){
 		var res = new ArrayList<EObject>();
 		if(o instanceof Type d && OOSEMUtils.getOOSEMBlockType(d) == OOSEMBlockType.SPECIFICATION) {
