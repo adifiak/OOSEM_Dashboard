@@ -61,6 +61,8 @@ public class OOSEMModelLoader {
 		OOSEMModelValidator.validateSpecification(validationErrors, validationWarnings, specifications);
 		OOSEMModelValidator.validateDesign(validationErrors, validationWarnings, specsWithDesigns.blocksWithFamily);
 		OOSEMModelValidator.validateIntegration(validationErrors, validationWarnings, designsWithIntegrations.blocksWithFamily);
+		OOSEMModelValidator.registerOrphanBlocks(validationErrors, specsWithDesigns.orphanBlocks);
+		OOSEMModelValidator.registerOrphanBlocks(validationErrors, designsWithIntegrations.orphanBlocks);
 
 		var project = getProjectWithName(projectName);
 		
@@ -203,112 +205,6 @@ public class OOSEMModelLoader {
 						&& !t.getDeclaredName().equals("IntegrationBlock"))
 						&& OOSEMUtils.getOOSEMBlockType(t) == parentType)
 				.collect(Collectors.toList());
-	}
-	
-	private static class OOSEMModelValidator {
-		
-		private static void validateSpecification(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Set<EObject> specifications) {
-			validateChildren(validationErrors, specifications, OOSEMUtils::filterDesignsAndInegrations, "Specifications can not contain designs or integrations.");
-		}
-		
-		private static void validateDesign(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Map<EObject, Set<EObject>> specificationsWithDesigns) {
-			var nonOrphanDesigns = new HashSet<EObject>();
-			specificationsWithDesigns.values().stream().forEach(p -> nonOrphanDesigns.addAll(p));
-			validateChildren(validationErrors, nonOrphanDesigns, OOSEMUtils::filterDesignsAndInegrations, "Designs can only contain specifications.");
-		}
-		
-		private static void validateIntegration(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Map<EObject, Set<EObject>> designsWithIntegrations) {
-			var nonOrphanIntegrations = new HashSet<EObject>();
-			designsWithIntegrations.values().stream().forEach(p -> nonOrphanIntegrations.addAll(p));
-
-			validateChildren(validationErrors, nonOrphanIntegrations, OOSEMUtils::filterSpecification, "Integrations of specificationBlocks is not permited.");
-			
-			for(var d : designsWithIntegrations.keySet()) {
-				var integrations = designsWithIntegrations.get(d);
-				for (var integration : integrations) {
-					var integratedBlocks = ((Type) integration).getOwnedMember().stream()
-							.filter(OOSEMUtils::filterDesignsAndInegrations)
-							.collect(Collectors.toList());
-					
-					var unintegratedSpecifications = validateUnrequiredIntegrations(validationErrors, d, integration, integratedBlocks);
-					validateUnintegratedSpecifications(validationWarnings, integration, unintegratedSpecifications);
-				}
-			}
-		}
-
-		private static void validateUnintegratedSpecifications(Map<EObject, Set<String>> validationWarnings,
-				EObject integration, ArrayList<Element> unintegratedSpecifications) {
-			if(!unintegratedSpecifications.isEmpty()) {
-				var msg = "Unintegrated specifications:";
-				var first = true;
-				for(var u : unintegratedSpecifications) {
-					if(!first) { msg = msg + ",";first = false;}
-					msg = msg + " " + u.getName();
-				}
-				registerValidatorOutput(validationWarnings, integration, msg);
-			}
-		}
-
-		private static ArrayList<Element> validateUnrequiredIntegrations(Map<EObject, Set<String>> validationErrors,EObject parent, EObject integration, List<Element> integratedBlocks) {
-			var specs =  ((Type) parent).getOwnedMember().stream()
-					.filter(OOSEMUtils::filterSpecification)
-					.collect(Collectors.toSet());
-			
-			var unintegratedSpecifications = new ArrayList<>(specs);
-			var errorInChildren = false;
-			
-			for(var integratedBlock : integratedBlocks) {
-				var redefinedFeatures = FeatureUtil.getAllRedefinedFeaturesOf((Feature)integratedBlock);
-				redefinedFeatures.remove(integratedBlock);
-				redefinedFeatures = redefinedFeatures.stream().filter(OOSEMUtils::filterSpecification).collect(Collectors.toSet());
-				
-				unintegratedSpecifications.removeAll(redefinedFeatures);
-				
-				if(!checkIfIntegrationIsRequired(redefinedFeatures, specs)) {
-					registerValidatorOutput(validationErrors, integratedBlock, "Unrequired integration of block.");
-					errorInChildren = true;
-				}
-			}
-			if(errorInChildren) {
-				registerValidatorOutput(validationErrors, integration, "Error(s) present in children.");
-			}
-			return unintegratedSpecifications;
-		}
-		
-		private static void validateChildren(Map<EObject, Set<String>> validationErrors, Set<EObject> blocks, Predicate<? super Element> filterLambda, String message) {
-			for(var i : blocks) {
-				if(i instanceof OccurrenceDefinition o) {
-					var ownedDesignsAndIntegrations = o.getOwnedMember().stream()
-							.filter(filterLambda)
-							.collect(Collectors.toList());
-					
-					if(ownedDesignsAndIntegrations.isEmpty()) continue;
-					
-					for(var s : ownedDesignsAndIntegrations) {
-						registerValidatorOutput(validationErrors, s, message);
-					}
-					registerValidatorOutput(validationErrors, o, "Error(s) present in children.");
-				}
-			}
-		}
-		
-		private static boolean checkIfIntegrationIsRequired(Set<Feature> redefinedFeatures, Set<Element> specs) {
-			for(var redefinedFeature : redefinedFeatures) {
-				if(specs.contains(redefinedFeature)) return true;
-			}
-			return false;
-		}
-		
-		private static void registerValidatorOutput(Map<EObject, Set<String>> validationOutputContainer, EObject o, String msg) {
-			var errorSet = validationOutputContainer.get(o);
-			if(errorSet == null) {
-				Set<String> errors = new HashSet<>();
-				errors.add(msg);
-				validationOutputContainer.put(o, errors);
-			} else {
-				errorSet.add(msg);
-			}
-		}
 	}
 	
 	public static class BlockFamilyStructures {
