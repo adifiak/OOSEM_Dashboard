@@ -50,7 +50,9 @@ public class IntegrationPage extends WizardPage {
                     	var block = ((OOSEMIntegrationConfig) element).getImplementation();
                     	if(block != null) {
                     		var res = OOSEMUtils.getDecoratedName((Type)block);
-                    		if(data.project.getValidationWarnings().get(block) != null) {
+                    		if(data.project.getValidationErrors().get(block) != null) {
+                    			res = res + " ❌";
+                    		} else if(data.project.getValidationWarnings().get(block) != null) {
                     			res = res + " ⚠️";
                     		}
                     		return res;

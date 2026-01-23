@@ -31,6 +31,7 @@ import hu.bme.mit.sysml.oosem.model.OOSEMProject;
 import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader.BlockFamilyStructures;
 import hu.bme.mit.sysml.oosem.views.listeners.ContextMenuListener;
 import hu.bme.mit.sysml.oosem.views.listeners.OOSEMTreeViewerListener;
+import hu.bme.mit.sysml.oosem.views.listeners.ProjectBuildFinishedListener;
 import hu.bme.mit.sysml.oosem.views.listeners.RefreshButtonListener;
 import hu.bme.mit.sysml.oosem.views.listeners.ShowValidationResultsMouseTracctListener;
 import hu.bme.mit.sysml.oosem.views.listeners.ContextMenuListener.*;;
@@ -51,7 +52,9 @@ public class OOSEMModelTreeView {
 		viewBody.setLayout(layout);
 	}
 	
-	public void refresh(String projectName, IProgressMonitor monitor) {
+	public void refresh(IProgressMonitor monitor) {
+		if(projectBuildFinishedListener != null) projectBuildFinishedListener.unregister();
+		
 		Display.getDefault().syncExec(() -> {
 			for (var child : viewBody.getChildren()) {
 				child.dispose();
@@ -59,7 +62,7 @@ public class OOSEMModelTreeView {
 			initViewBase(viewBody);
 		});
 
-		oosemProject = OOSEMModelLoader.LoadModelFromOOSEMProject(projectName, monitor);
+		oosemProject = OOSEMModelLoader.LoadModelFromOOSEMProject(loadedProject, monitor);
 		var specificationBlocks = oosemProject.getSpecifications();
 		var designBlocks = oosemProject.getSpecificationsWithTheirDesigns();
 		var integrationBlocks = oosemProject.getDesignsWithTheirIntegrations();
@@ -68,6 +71,8 @@ public class OOSEMModelTreeView {
 			createTreeViewers(specificationBlocks, designBlocks, integrationBlocks);
 			calculateScrolledCompositeSizes();
 		});
+		
+		projectBuildFinishedListener = new ProjectBuildFinishedListener(this, oosemProject.getProject());
 	}
 	
 	public void setLoadedProject(String lp) { loadedProject = lp; }
@@ -216,6 +221,8 @@ public class OOSEMModelTreeView {
 
 	private OOSEMProject oosemProject;
 	private String loadedProject = "";
+	
+	private ProjectBuildFinishedListener projectBuildFinishedListener;
 	
 	private final String comboPlaceholder = "Choose project to visualize...";
 }

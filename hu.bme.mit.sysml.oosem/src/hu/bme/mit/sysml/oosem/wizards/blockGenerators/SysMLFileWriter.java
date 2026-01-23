@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 
@@ -19,6 +20,7 @@ public class SysMLFileWriter {
             writer.write(content);
             writer.close();
             if(buildProjectAutomaticaly) {
+            	project.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
             	project.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
             }
         } catch (IOException e) {
