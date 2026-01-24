@@ -152,7 +152,6 @@ public class OOSEMModelLoader {
 			        if (resource.getType() == IResource.FILE) {
 			            IFile file = (IFile) resource;
 			            if(file.getFileExtension().equals("sysml")) {
-			            	System.out.println("File: " + file.getFullPath());
 			            	paths.add(file.getFullPath().toString());
 			            }
 			        }

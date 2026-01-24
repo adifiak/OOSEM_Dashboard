@@ -24,7 +24,7 @@ class DesignToIntegrationGenerator {
 						«IF p.implementation === null »
 							//#<OOSEMMetadata> «GeneratorUtils.getSysMLType(p.specification as Type)» <NewName> :>> «(p.specification as Type).name» : <NewType>;
 						«ELSE»
-							#«GeneratorUtils.getMetadata(p.implementation)» «GeneratorUtils.getSysMLType(p.implementation as Type)»«IF data2.featureNames.get(p.specification) !== null»«data2.featureNames.get(p.specification)» «ENDIF»:>> «(p.specification as Type).name» : «(p.implementation as Type).name»;
+							#«GeneratorUtils.getMetadata(p.implementation)» «GeneratorUtils.getSysMLType(p.implementation as Type)» «IF data2.featureNames.get(p.specification) !== null && !data2.featureNames.get(p.specification).isEmpty»«data2.featureNames.get(p.specification)» «ENDIF»:>> «(p.specification as Type).name» : «(p.implementation as Type).name»;
 						«ENDIF»
 					«ENDFOR»
 					//TODO: Auto-generated block skeleton

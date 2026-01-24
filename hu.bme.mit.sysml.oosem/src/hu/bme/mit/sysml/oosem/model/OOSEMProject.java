@@ -74,7 +74,7 @@ public class OOSEMProject {
 				var def = defs.get(0);
 				if(def instanceof OccurrenceDefinition spec) {
 					var designs = specificationsWithDesigns.getBlocksWithFamily().get(spec);
-					if(designs.isEmpty()){
+					if(designs == null || designs.isEmpty()){
 						return res;
 					} else {
 						res.addAll(designs);

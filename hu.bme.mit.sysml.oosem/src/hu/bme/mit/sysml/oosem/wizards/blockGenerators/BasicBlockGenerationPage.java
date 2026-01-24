@@ -1,7 +1,10 @@
 package hu.bme.mit.sysml.oosem.wizards.blockGenerators;
 
+import java.io.File;
+
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -37,6 +40,10 @@ public class BasicBlockGenerationPage extends WizardPage {
         blockNameText = new Text(container, SWT.BORDER);
         blockNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         blockNameText.setText(defaultBlocknamePrefix + data.subjectSpecification.getName());
+        blockNameText.addListener(SWT.Modify, event -> {
+            if (event.doit)
+            	validateLocation();
+        });
         
         new Label(container, SWT.NONE).setText("Output file:");
         Composite browseComp = new Composite(container, SWT.NONE);
@@ -46,6 +53,10 @@ public class BasicBlockGenerationPage extends WizardPage {
         outputPathText = new Text(browseComp, SWT.BORDER);
         outputPathText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         outputPathText.setText(data.path);
+        outputPathText.addListener(SWT.Modify, event -> {
+            if (event.doit)
+            	validateLocation();
+        });
 
         Button browseBtn = new Button(browseComp, SWT.PUSH);
         browseBtn.setText("Browse...");
@@ -57,6 +68,7 @@ public class BasicBlockGenerationPage extends WizardPage {
         });
         
         refreshDataFromUI();
+        validateLocation();
 
         setControl(container);
         setPageComplete(true);
@@ -65,6 +77,15 @@ public class BasicBlockGenerationPage extends WizardPage {
 	public void refreshDataFromUI() {
 		data.blockName = blockNameText.getText();
 		data.path = outputPathText.getText();
+	}
+	
+	private void validateLocation() {
+		var path = outputPathText.getText() + "/" + blockNameText.getText() + ".sysml";
+    	if(new File(path).exists()) {
+    		setMessage("File already exists at location", IMessageProvider.ERROR);
+    	} else {
+    		setMessage(null);
+    	}
 	}
 	
 	private Text blockNameText;
