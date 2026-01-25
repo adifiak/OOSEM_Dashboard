@@ -98,10 +98,10 @@ public class OOSEMUtils {
 					res = "🟣 " + res;//🔴
 					break;
 				case DESIGN:
-					res = "🟢 " + res;
+					res = "🟩 " + res;
 					break;
 				case INTEGRATION:
-					res = "🔵 " + res;
+					res = "🔷 " + res;
 					break;
 				default:
 			}
