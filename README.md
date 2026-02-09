@@ -29,11 +29,11 @@
 3. The dashboard shows the OOSEM blocks and their structures, organized according to the methodologies hierarchy
 
 4. Colorful markings represent OOSEM block types
-   * Purple circle: Specification block
-   * Green square: Design block
-   * Blue diamond: Integration block
+   * Purple circle (🟣): Specification block
+   * Green square (🟩): Design block
+   * Blue diamond (🔷): Integration block
 
-5. Errors and warnings are also represented by markers
+5. Errors and warnings are also represented by markers (❌/⚠️)
    * Hover your mouse above the labels with errors or warnings to get detailed information
 
 6. Right-click on labels to open the context menu
@@ -41,3 +41,7 @@
    * Generate design/integration block: Opens a wizard to generate block frames for the next step
 
 7. The tool automatically builds the model after block generation and refreshes the dashboard after builds
+
+## Known issues
+
+1. The colors of the markers do not render on Windows due to limitations between Eclipse and Windows. (The tool can still be used with monocrome markers.)
