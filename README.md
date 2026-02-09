@@ -29,8 +29,8 @@
 3. The dashboard shows the OOSEM blocks and their structures, organized according to the methodologies hierarchy
 
 4. Colorful markings represent OOSEM block types
-   * Purple circle: requirement block
-   * Green square: design block
+   * Purple circle: Specification block
+   * Green square: Design block
    * Blue diamond: Integration block
 
 5. Errors and warnings are also represented by markers
