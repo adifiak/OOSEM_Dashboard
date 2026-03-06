@@ -15,20 +15,31 @@ import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 import org.omg.sysml.lang.sysml.Type;
 import org.omg.sysml.util.FeatureUtil;
 
+import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader.BlockFamilyStructures;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 
 public class OOSEMModelValidator {
-	static void validateSpecification(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Set<EObject> specifications) {
+	static void validateOOSEMModel(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Set<EObject> specifications, BlockFamilyStructures designs, BlockFamilyStructures integrations) {
+		validateSpecification(validationErrors, validationWarnings, specifications);
+		
+		validateDesign(validationErrors, validationWarnings, designs.getBlocksWithFamily());
+		registerOrphanBlocks(validationErrors, designs.getOrphanedBlocks());
+		
+		validateIntegration(validationErrors, validationWarnings, integrations.getBlocksWithFamily());
+		registerOrphanBlocks(validationErrors, integrations.getOrphanedBlocks());
+	}
+	
+	private static void validateSpecification(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Set<EObject> specifications) {
 		validateChildren(validationErrors, specifications, OOSEMUtils::filterDesignsAndInegrations, "Specifications can not contain designs or integrations.");
 	}
 	
-	static void validateDesign(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Map<EObject, Set<EObject>> specificationsWithDesigns) {
+	private static void validateDesign(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Map<EObject, Set<EObject>> specificationsWithDesigns) {
 		var nonOrphanDesigns = new HashSet<EObject>();
 		specificationsWithDesigns.values().stream().forEach(p -> nonOrphanDesigns.addAll(p));
 		validateChildren(validationErrors, nonOrphanDesigns, OOSEMUtils::filterDesignsAndInegrations, "Designs can only contain specifications.");
 	}
 	
-	static void validateIntegration(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Map<EObject, Set<EObject>> designsWithIntegrations) {
+	private static void validateIntegration(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings, Map<EObject, Set<EObject>> designsWithIntegrations) {
 		var nonOrphanIntegrations = new HashSet<EObject>();
 		designsWithIntegrations.values().stream().forEach(p -> nonOrphanIntegrations.addAll(p));
 
@@ -42,17 +53,17 @@ public class OOSEMModelValidator {
 						.collect(Collectors.toList());
 				
 				var unintegratedSpecifications = validateUnrequiredIntegrations(validationErrors, d, integration, integratedBlocks);
-				validateUnintegratedSpecifications(validationWarnings, integration, unintegratedSpecifications);
+				registerUnintegratedSpecifications(validationWarnings, integration, unintegratedSpecifications);
 			}
 		}
 	}
 	
-	static void registerOrphanBlocks(Map<EObject, Set<String>> validationErrors, Set<EObject> orphans) {
+	private static void registerOrphanBlocks(Map<EObject, Set<String>> validationErrors, Set<EObject> orphans) {
 		for(var o : orphans)
 			registerValidatorOutput(validationErrors, o, "Orphan block: Does not specialize block from previous phase.");
 	}
 
-	private static void validateUnintegratedSpecifications(Map<EObject, Set<String>> validationWarnings,
+	private static void registerUnintegratedSpecifications(Map<EObject, Set<String>> validationWarnings,
 			EObject integration, ArrayList<Element> unintegratedSpecifications) {
 		if(!unintegratedSpecifications.isEmpty()) {
 			var msg = "Unintegrated specifications:";
@@ -94,13 +105,13 @@ public class OOSEMModelValidator {
 	private static void validateChildren(Map<EObject, Set<String>> validationErrors, Set<EObject> blocks, Predicate<? super Element> filterLambda, String message) {
 		for(var i : blocks) {
 			if(i instanceof OccurrenceDefinition o) {
-				var ownedDesignsAndIntegrations = o.getOwnedMember().stream()
+				var filteredChildren = o.getOwnedMember().stream()
 						.filter(filterLambda)
 						.collect(Collectors.toList());
 				
-				if(ownedDesignsAndIntegrations.isEmpty()) continue;
+				if(filteredChildren.isEmpty()) continue;
 				
-				for(var s : ownedDesignsAndIntegrations) {
+				for(var s : filteredChildren) {
 					registerValidatorOutput(validationErrors, s, message);
 				}
 				registerValidatorOutput(validationErrors, o, "Error(s) present in children.");

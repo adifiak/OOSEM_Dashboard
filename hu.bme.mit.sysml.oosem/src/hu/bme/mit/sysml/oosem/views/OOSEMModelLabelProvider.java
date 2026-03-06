@@ -12,6 +12,7 @@ import org.omg.sysml.lang.sysml.Type;
 import org.omg.sysml.util.FeatureUtil;
 
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
+import hu.bme.mit.sysml.oosem.util.UIUtils;
 
 public class OOSEMModelLabelProvider extends LabelProvider {
 	OOSEMModelLabelProvider(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings) {
@@ -31,11 +32,18 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 					res = res + " redefines " + OOSEMUtils.getTextOfType(redefines.get(0));
 				}
 			}
+			
 			if(validationErrors.get(t) != null) {
 				res = res + " ❌";
 			} else if(validationWarnings.get(t) != null) {
 				res = res + " ⚠️";
 			}
+			
+			var parentsFromSamePhase = OOSEMUtils.getParentsFromSamePhase(t);
+			if(!parentsFromSamePhase.isEmpty()) {
+				res = res + " specializes " + UIUtils.getFormatedBlockListText(parentsFromSamePhase);
+			}
+			
 			return res;
 		}
 		return "Unknown label for: " + element.getClass();

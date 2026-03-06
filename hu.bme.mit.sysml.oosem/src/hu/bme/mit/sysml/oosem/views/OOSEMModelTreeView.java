@@ -25,10 +25,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.omg.sysml.lang.sysml.Element;
+import org.omg.sysml.lang.sysml.Type;
 
 import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader;
 import hu.bme.mit.sysml.oosem.model.OOSEMProject;
 import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader.BlockFamilyStructures;
+import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
+import hu.bme.mit.sysml.oosem.util.UIUtils;
 import hu.bme.mit.sysml.oosem.views.listeners.ContextMenuListener;
 import hu.bme.mit.sysml.oosem.views.listeners.OOSEMTreeViewerListener;
 import hu.bme.mit.sysml.oosem.views.listeners.ProjectBuildFinishedListener;
@@ -160,8 +163,7 @@ public class OOSEMModelTreeView {
 		parentsOrdered.sort(new OOSEMModelComparator());
 
 		for (var parentBlock : parentsOrdered) {
-			String parentName = (parentBlock instanceof Element e) ? parentNamePrefix + e.getDeclaredName() + ":"
-					: "NAME NOT FOUND:";
+			String parentName = generateViewBlockTitleText(parentNamePrefix, parentBlock);
 			var roots = parentsAndChilds.get(parentBlock);
 			var layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
 			List<addOptionToContextMenu> menuOptions = Arrays.asList(MenuOptions::addShowInEditorToMenu, MenuOptions::addIntegrationWizardToMenu);
@@ -174,6 +176,21 @@ public class OOSEMModelTreeView {
 			List<addOptionToContextMenu> menuOptions = Arrays.asList(MenuOptions::addShowInEditorToMenu, MenuOptions::addIntegrationWizardToMenu);
 			createViewBlock(scrolledComposite, container, layoutData, "Orphan blocks:", orphanBlocks, menuOptions);
 		}
+	}
+
+	private String generateViewBlockTitleText(String parentNamePrefix, EObject parentBlock) {
+		String parentName ="NAME NOT FOUND:";
+		if(parentBlock instanceof Type e) {
+			parentName = parentNamePrefix + e.getDeclaredName();
+			
+			var parentsFromSamePhase = OOSEMUtils.getParentsFromSamePhase(e);
+			if(!parentsFromSamePhase.isEmpty()) {
+				parentName = parentName + " specializes " + UIUtils.getFormatedBlockListText(parentsFromSamePhase);
+			}
+			
+			parentName = parentName + ":";
+		}
+		return parentName;
 	}
 
 	private void createViewBlock(ScrolledComposite scrolledComposite, Composite container, Object layoutData, String labelText,

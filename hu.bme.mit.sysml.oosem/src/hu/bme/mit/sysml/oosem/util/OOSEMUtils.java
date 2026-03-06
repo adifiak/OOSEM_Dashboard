@@ -69,6 +69,19 @@ public class OOSEMUtils {
 		return res;
 	}
 	
+	public static List<Type> getParentsFromSamePhase(Type block) {
+		var blockType = OOSEMUtils.getOOSEMBlockType(block);
+		var parentsFromSamePhase = block.supertypes(true)
+				.stream()
+				.filter(p -> OOSEMUtils.getOOSEMBlockType(p) == blockType)
+				.collect(Collectors.toList());
+		return parentsFromSamePhase;
+	}
+	
+	public static boolean filterOOSEMBlocks(EObject o) {
+		return getOOSEMBlockType(o) != OOSEMBlockType.NONE;
+	}
+	
 	public static boolean filterNamelessElements(Element e) {
 		if(!(e.effectiveName() == null || e.effectiveName().isEmpty())) {
 			return true;

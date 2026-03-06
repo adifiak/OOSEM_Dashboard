@@ -16,9 +16,10 @@ import hu.bme.mit.sysml.oosem.model.OOSEMProject;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
-import hu.bme.mit.sysml.oosem.views.listeners.ContextMenuListener.addOptionToContextMenu;
 import hu.bme.mit.sysml.oosem.wizards.blockGenerators.DesignToIntegrationWizard;
 import hu.bme.mit.sysml.oosem.wizards.blockGenerators.SpecificationToDesignWizard;
+
+import org.omg.sysml.lang.sysml.Type;
 
 public class ContextMenuListener {
 	@FunctionalInterface

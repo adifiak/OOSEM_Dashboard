@@ -40,12 +40,11 @@ public class OOSEMModelLoader {
 		Set<EObject> designs = new HashSet<EObject>();
 		Set<EObject> integrations = new HashSet<EObject>();
 		
+		var project = getProjectWithName(projectName);
 		var filePaths = getPathsForProject(projectName);
-		
-		ResourceSet resourceSet = new ResourceSetImpl();
-		
 		SubMonitor subMonitor = SubMonitor.convert(monitor, filePaths.size());
 		
+		ResourceSet resourceSet = new ResourceSetImpl();
 		for(var fp : filePaths) {
 			subMonitor.setTaskName("Processing: " + fp);
 			processFile(resourceSet, specifications, designs, integrations, fp);
@@ -57,14 +56,7 @@ public class OOSEMModelLoader {
 		
 		var validationErrors = new HashMap<EObject, Set<String>>();
 		var validationWarnings = new HashMap<EObject, Set<String>>();
-		
-		OOSEMModelValidator.validateSpecification(validationErrors, validationWarnings, specifications);
-		OOSEMModelValidator.validateDesign(validationErrors, validationWarnings, specsWithDesigns.blocksWithFamily);
-		OOSEMModelValidator.validateIntegration(validationErrors, validationWarnings, designsWithIntegrations.blocksWithFamily);
-		OOSEMModelValidator.registerOrphanBlocks(validationErrors, specsWithDesigns.orphanBlocks);
-		OOSEMModelValidator.registerOrphanBlocks(validationErrors, designsWithIntegrations.orphanBlocks);
-
-		var project = getProjectWithName(projectName);
+		OOSEMModelValidator.validateOOSEMModel(validationErrors, validationWarnings, specifications, specsWithDesigns, designsWithIntegrations);
 		
 		return new OOSEMProject(project, specifications, designs, integrations, specsWithDesigns, designsWithIntegrations, validationErrors, validationWarnings);
 	}
@@ -172,21 +164,18 @@ public class OOSEMModelLoader {
 		for (var s : childsSet) {
 			if (s instanceof OccurrenceDefinition o) {
 				var oosemParents = getParentBlocksWithType(parentType, o);
-				if (oosemParents.size() > 1) {
-					System.err.println("Several parents found to child. (Multistep refinement is not supported yet.)");
-					System.err.println(oosemParents);
-					// TODO ...
-				} else if (oosemParents.size() == 0) {
+				if (oosemParents.size() == 0) {
 					orphans.add(o);
 				} else {
-					var parent = oosemParents.get(0);
-					if (families.containsKey(parent)) {
-						var childs = families.get(parent);
-						childs.add(o);
-					} else {
-						var childs = new HashSet<EObject>();
-						childs.add(o);
-						families.put(parent, childs);
+					for(var parent : oosemParents) {
+						if (families.containsKey(parent)) {
+							var childs = families.get(parent);
+							childs.add(o);
+						} else {
+							var childs = new HashSet<EObject>();
+							childs.add(o);
+							families.put(parent, childs);
+						}
 					}
 				}
 			} else {
