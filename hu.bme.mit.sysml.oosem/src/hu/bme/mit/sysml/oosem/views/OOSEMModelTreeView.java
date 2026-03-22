@@ -10,7 +10,6 @@ import javax.annotation.PostConstruct;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -24,13 +23,14 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.omg.sysml.lang.sysml.Element;
 import org.omg.sysml.lang.sysml.Type;
 
-import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader;
-import hu.bme.mit.sysml.oosem.model.OOSEMProject;
-import hu.bme.mit.sysml.oosem.model.OOSEMModelLoader.BlockFamilyStructures;
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
+import hu.bme.mit.sysml.oosem.model.project.implementations.BlockFamilyStructures;
+import hu.bme.mit.sysml.oosem.model.project.implementations.OOSEMProjectImpl;
+import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
+import hu.bme.mit.sysml.oosem.util.ProjectUtils;
 import hu.bme.mit.sysml.oosem.util.UIUtils;
 import hu.bme.mit.sysml.oosem.views.listeners.ContextMenuListener;
 import hu.bme.mit.sysml.oosem.views.listeners.OOSEMTreeViewerListener;
@@ -65,7 +65,9 @@ public class OOSEMModelTreeView {
 			initViewBase(viewBody);
 		});
 
-		oosemProject = OOSEMModelLoader.LoadModelFromOOSEMProject(loadedProject, monitor);
+		var project = ProjectUtils.getProjectWithName(loadedProject);
+		oosemProject = new OOSEMProjectImpl(project, monitor);
+				
 		var specificationBlocks = oosemProject.getSpecifications();
 		var designBlocks = oosemProject.getSpecificationsWithTheirDesigns();
 		var integrationBlocks = oosemProject.getDesignsWithTheirIntegrations();
@@ -114,7 +116,7 @@ public class OOSEMModelTreeView {
 		});
 	}
 
-	private void createTreeViewers(Set<EObject> specificationBlocks, BlockFamilyStructures designBlocks, BlockFamilyStructures integrationBlocks) {
+	private void createTreeViewers(Set<OOSEMBlock> specificationBlocks, BlockFamilyStructures designBlocks, BlockFamilyStructures integrationBlocks) {
 		createViewBlock(specificationsSC, specificationContainer, new GridData(SWT.FILL, SWT.FILL, true, true), "Specification Blocks:",
 				specificationBlocks, Arrays.asList(MenuOptions::addShowInEditorToMenu, MenuOptions::addDesignWizardToMenu));
 		createOOSEMViewWithSuperTypes(designsSC, designContainer, designBlocks, "Designs of ");
@@ -178,9 +180,9 @@ public class OOSEMModelTreeView {
 		}
 	}
 
-	private String generateViewBlockTitleText(String parentNamePrefix, EObject parentBlock) {
+	private String generateViewBlockTitleText(String parentNamePrefix, OOSEMBlock parentBlock) {
 		String parentName ="NAME NOT FOUND:";
-		if(parentBlock instanceof Type e) {
+		if(parentBlock.getObject() instanceof Type e) {
 			parentName = parentNamePrefix + e.getDeclaredName();
 			
 			var parentsFromSamePhase = OOSEMUtils.getParentsFromSamePhase(e);
@@ -194,7 +196,7 @@ public class OOSEMModelTreeView {
 	}
 
 	private void createViewBlock(ScrolledComposite scrolledComposite, Composite container, Object layoutData, String labelText,
-			Set<EObject> roots, List<addOptionToContextMenu> contextMenuOptions) {
+			Set<OOSEMBlock> roots, List<addOptionToContextMenu> contextMenuOptions) {
 		Composite block = new Composite(container, SWT.NONE);
 		block.setLayoutData(layoutData);
 		block.setLayout(new GridLayout(1, false));
@@ -210,8 +212,7 @@ public class OOSEMModelTreeView {
 		treeViewer.addTreeListener(new OOSEMTreeViewerListener(scrolledComposite, container, treeViewer));
 
 		treeViewer.setContentProvider(new OOSEMModelContentProvider());
-		treeViewer.setLabelProvider(
-				new OOSEMModelLabelProvider(oosemProject.getValidationErrors(), oosemProject.getValidationWarnings()));
+		treeViewer.setLabelProvider(new OOSEMModelLabelProvider());
 		treeViewer.setComparator(new OOSEMViewComparator());
 		treeViewer.setInput((Object[]) roots.toArray());
 

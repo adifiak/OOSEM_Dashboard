@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.omg.sysml.lang.sysml.Type;
 
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 
 public class IntegrationPage extends WizardPage {
@@ -41,7 +42,8 @@ public class IntegrationPage extends WizardPage {
                 List<OOSEMIntegrationConfig> options = new ArrayList<>();
                 var emptyItem = new OOSEMIntegrationConfig(spec);
                 options.add(emptyItem);
-                data.project.getPossibleImplementationsOfSpecification(spec).stream().forEach(p -> options.add(new OOSEMIntegrationConfig(spec, p)));;
+                // TODO
+                //data.project.getPossibleImplementationsOfSpecification(spec).stream().forEach(p -> options.add(new OOSEMIntegrationConfig(spec, p)));;
                 
                 combo.setContentProvider(ArrayContentProvider.getInstance());
                 combo.setLabelProvider(new LabelProvider() {
@@ -50,9 +52,9 @@ public class IntegrationPage extends WizardPage {
                     	var block = ((OOSEMIntegrationConfig) element).getImplementation();
                     	if(block != null) {
                     		var res = OOSEMUtils.getDecoratedName((Type)block);
-                    		if(data.project.getValidationErrors().get(block) != null) {
+                    		if(!((OOSEMBlock)block).getValidationErrors().isEmpty()) {
                     			res = res + " ❌";
-                    		} else if(data.project.getValidationWarnings().get(block) != null) {
+                    		} else if(!((OOSEMBlock)block).getValidationWarnings().isEmpty()) {
                     			res = res + " ⚠️";
                     		}
                     		return res;

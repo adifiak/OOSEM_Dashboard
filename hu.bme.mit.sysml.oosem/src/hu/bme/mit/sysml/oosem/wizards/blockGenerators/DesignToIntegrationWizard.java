@@ -4,9 +4,9 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.Wizard;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
-import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 
-import hu.bme.mit.sysml.oosem.model.OOSEMProject;
+import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
+import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 
 public class DesignToIntegrationWizard  extends Wizard{
 	

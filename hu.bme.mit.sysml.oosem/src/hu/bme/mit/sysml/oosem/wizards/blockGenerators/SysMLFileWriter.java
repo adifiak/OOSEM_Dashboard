@@ -8,7 +8,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 
-import hu.bme.mit.sysml.oosem.model.OOSEMProject;
+import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
 
 public class SysMLFileWriter {
 	public static void writeFile(BasicBlockGenerationData data, String content, OOSEMProject project) {

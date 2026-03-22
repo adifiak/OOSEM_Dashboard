@@ -7,7 +7,7 @@ import java.util.Map;
 import org.eclipse.emf.ecore.EObject;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 
-import hu.bme.mit.sysml.oosem.model.OOSEMProject;
+import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
 import hu.bme.mit.sysml.oosem.wizards.blockGenerators.IntegrationPage.OOSEMIntegrationConfig;
 
 public class IntegrationData {

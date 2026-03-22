@@ -12,7 +12,8 @@ import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 
-import hu.bme.mit.sysml.oosem.model.OOSEMProject;
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
+import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
@@ -41,39 +42,39 @@ public class ContextMenuListener {
 	
 	public static class MenuOptions {
 		public static void addShowInEditorToMenu(IMenuManager manager, Object item, OOSEMProject context) {
-			if (item instanceof EObject eobj) {
+			if (item instanceof OOSEMBlock block) {
 				manager.add(new Action("Open in Editor") {
 					public void run() {
-						OpenInFileUtils.openEditorForEObject(eobj);
+						OpenInFileUtils.openEditorForEObject(block.getObject());
 					}
 				});
 			}
 		}
 
 		public static void addDesignWizardToMenu(IMenuManager manager, Object item, OOSEMProject context) {
-			if (item instanceof OccurrenceDefinition od && OOSEMUtils.getOOSEMBlockType(od) == OOSEMBlockType.SPECIFICATION) {
+			if (item instanceof OOSEMBlock block && block.getOOSEMBlockType() == OOSEMBlockType.SPECIFICATION) {
 				var action = new Action("Generate Design Block") {
 					public void run() {
 						WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-								new SpecificationToDesignWizard(od, context));
+								new SpecificationToDesignWizard(((OccurrenceDefinition) block.getObject()), context));
 						dialog.open();
 					}
 				};
-				action.setEnabled(context.passedValidation(od));
+				action.setEnabled(block.passedValidation());
 				manager.add(action);
 			}
 		}
 		
 		public static void addIntegrationWizardToMenu(IMenuManager manager, Object item, OOSEMProject context) {
-			if (item instanceof OccurrenceDefinition od && OOSEMUtils.getOOSEMBlockType(od) == OOSEMBlockType.DESIGN) {
+			if (item instanceof OOSEMBlock block && block.getOOSEMBlockType() == OOSEMBlockType.DESIGN) {
 				var action = new Action("Generate Integration Block") {
 					public void run() {
 						WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-								new DesignToIntegrationWizard(od, context));
+								new DesignToIntegrationWizard(((OccurrenceDefinition) block.getObject()), context));
 						dialog.open();
 					}
 				};
-				action.setEnabled(context.passedValidation(od));
+				action.setEnabled(block.passedValidation());
 				manager.add(action);
 			}
 		}

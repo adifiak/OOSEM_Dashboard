@@ -4,9 +4,12 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.omg.sysml.lang.sysml.Namespace;
 import org.omg.sysml.lang.sysml.Type;
 
-import hu.bme.mit.sysml.oosem.model.OOSEMProject;
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMElement;
+import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
 
 public class ShowValidationResultsMouseTracctListener extends MouseTrackAdapter {
 	public ShowValidationResultsMouseTracctListener(Tree tree, OOSEMProject oosemProject) {
@@ -22,18 +25,18 @@ public class ShowValidationResultsMouseTracctListener extends MouseTrackAdapter 
 			return;
 		} else {
 			var data = item.getData();
-			if (data != null && data instanceof Type t) {
-				var errors = oosemProject.getValidationErrors().get(data);
-				var warnings = oosemProject.getValidationWarnings().get(data);
-				if (errors != null) {
-					var toolTip = "Errors for " + t.getName() + ":";
+			if (data != null && data instanceof OOSEMElement block) {
+				var errors = ((OOSEMElement)data).getValidationErrors();
+				var warnings = ((OOSEMElement)data).getValidationWarnings();
+				if (!errors.isEmpty()) {
+					var toolTip = "Errors for " + ((Namespace)block.getObject()).getName() + ":";
 					for (var err : errors) {
 						toolTip = toolTip + "\n - " + err;
 					}
 					tree.setToolTipText(toolTip);
 					return;
-				} else if (warnings != null) {
-					var toolTip = "Warnings for " + t.getName() + ":";
+				} else if (!warnings.isEmpty()) {
+					var toolTip = "Warnings for " + ((Namespace)block.getObject()).getName() + ":";
 					for (var war : warnings) {
 						toolTip = toolTip + "\n - " + war;
 					}

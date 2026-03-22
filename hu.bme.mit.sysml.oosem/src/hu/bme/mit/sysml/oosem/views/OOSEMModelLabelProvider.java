@@ -1,7 +1,5 @@
 package hu.bme.mit.sysml.oosem.views;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,19 +9,58 @@ import org.omg.sysml.lang.sysml.Feature;
 import org.omg.sysml.lang.sysml.Type;
 import org.omg.sysml.util.FeatureUtil;
 
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMElement;
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMFeature;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 import hu.bme.mit.sysml.oosem.util.UIUtils;
 
 public class OOSEMModelLabelProvider extends LabelProvider {
-	OOSEMModelLabelProvider(Map<EObject, Set<String>> validationErrors, Map<EObject, Set<String>> validationWarnings) {
-		this.validationErrors = validationErrors;
-		this.validationWarnings = validationWarnings;
-	}
+	OOSEMModelLabelProvider() {}
 	
 	public String getText(Object element) {
-		if (element instanceof Set) {
-			return "System models";
-		} else if (element instanceof Type t) {
+		if(element instanceof OOSEMElement oosemElement) 
+			return generateOOSEMElementLabel(oosemElement);
+		if(element instanceof OOSEMElementGroup g)
+			return generateOOSEMElementGroupLabel(g);
+		if(element instanceof EObject eobject)
+			return generateEObjectLabel(eobject);
+		
+		return "Unknown label for: " + element.getClass();
+	}
+
+	private String generateOOSEMElementLabel(OOSEMElement oosemElement) {
+		var res = oosemElement.getName();
+		res = getOOSEMPhaseDecorator(oosemElement) + res;
+		
+		if(oosemElement instanceof OOSEMBlock block)
+			res = res + getInPhaseSpecializationDecorator(block);
+		if(oosemElement instanceof OOSEMFeature feature)
+			res = res + getredefinitionDecorator(feature);
+		
+		if(!oosemElement.getValidationErrors().isEmpty()) {
+			res = res + " ❌";
+		} else if(!oosemElement.getValidationWarnings().isEmpty()) {
+			res = res + " ⚠️";
+		}
+		
+		return res;
+	}
+
+	private String generateOOSEMElementGroupLabel(OOSEMElementGroup g) {
+		var res = g.getName();
+		
+		if(g.hasError()) {
+			res = res + " ❌";
+		} else if(g.hasWarning()) {
+			res = res + " ⚠️";
+		}
+		
+		return res;
+	}
+
+	private String generateEObjectLabel(EObject eobject) {
+		if (eobject instanceof Type t) {
 			var res = OOSEMUtils.getDecoratedName(t);
 			if(t instanceof Feature f) {
 				var redefines = FeatureUtil.getRedefinedFeaturesOf(f);
@@ -33,22 +70,52 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 				}
 			}
 			
-			if(validationErrors.get(t) != null) {
-				res = res + " ❌";
-			} else if(validationWarnings.get(t) != null) {
-				res = res + " ⚠️";
-			}
-			
 			var parentsFromSamePhase = OOSEMUtils.getParentsFromSamePhase(t);
 			if(!parentsFromSamePhase.isEmpty()) {
 				res = res + " specializes " + UIUtils.getFormatedBlockListText(parentsFromSamePhase);
 			}
 			
 			return res;
+		} else {
+			return "Could not generaty label for model element: " + eobject.toString();
 		}
-		return "Unknown label for: " + element.getClass();
 	}
 	
-	private final Map<EObject, Set<String>> validationErrors;
-	private final Map<EObject, Set<String>> validationWarnings;
+	private String getOOSEMPhaseDecorator(OOSEMElement element) {
+		switch(element.getOOSEMBlockType()) {
+			case SPECIFICATION:
+				return "🟣 "; //🔴
+			case DESIGN:
+				return "🟩 ";
+			case INTEGRATION:
+				return "🔷 ";
+			default:
+				return "";
+		}
+	}
+	
+	private String getInPhaseSpecializationDecorator(OOSEMBlock block) {
+		var res = "";
+		boolean first = true;
+		for(var p : block.getParents()) {
+			if(p.getOOSEMBlockType() == block.getOOSEMBlockType()) {
+				if(first) {
+					res = res + " specializes ";
+					first = false;
+				} else {
+					res = res + ", ";
+				}
+				res = res + p.getName();
+			}
+		}
+		return res;
+	}
+	
+	private String getredefinitionDecorator(OOSEMFeature feature) {
+		var redefines = feature.getRefinedFeature();
+		if(redefines != null)
+			return " redefines " + redefines.getName();
+		
+		return "";
+	}
 }

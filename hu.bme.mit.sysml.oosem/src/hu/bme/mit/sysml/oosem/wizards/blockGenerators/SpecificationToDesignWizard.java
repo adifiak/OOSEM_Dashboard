@@ -3,7 +3,7 @@ package hu.bme.mit.sysml.oosem.wizards.blockGenerators;
 import org.eclipse.jface.wizard.Wizard;
 import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 
-import hu.bme.mit.sysml.oosem.model.OOSEMProject;
+import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
 import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 
 public class SpecificationToDesignWizard extends Wizard{

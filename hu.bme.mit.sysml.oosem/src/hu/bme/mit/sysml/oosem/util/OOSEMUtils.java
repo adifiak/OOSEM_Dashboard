@@ -11,6 +11,8 @@ import org.omg.sysml.lang.sysml.OccurrenceUsage;
 import org.omg.sysml.lang.sysml.Type;
 import org.omg.sysml.util.FeatureUtil;
 
+import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
+
 public class OOSEMUtils {
 	public enum OOSEMBlockType {
 		NONE, SPECIFICATION, DESIGN, INTEGRATION
@@ -45,6 +47,16 @@ public class OOSEMUtils {
 	        	}
 		}
 		return OOSEMBlockType.NONE;
+	}
+	
+	public static List<Type> getAncestorBlocksByOOSEMType(OOSEMBlockType ancestorType, OccurrenceDefinition o) {
+		return o.allSupertypes().stream()
+				.filter(t -> (t.getDeclaredName() != null && !t.getDeclaredName().isEmpty()
+						&& !t.getDeclaredName().equals("SpecificationBlock")
+						&& !t.getDeclaredName().equals("DesignBlock")
+						&& !t.getDeclaredName().equals("IntegrationBlock"))
+						&& OOSEMUtils.getOOSEMBlockType(t) == ancestorType)
+				.collect(Collectors.toList());
 	}
 	
 	public static List<EObject> getSpecificationsInDesignBlock(EObject o) {
@@ -130,5 +142,15 @@ public class OOSEMUtils {
 	
 	public static boolean filterDesignsAndInegrations(EObject o) {
 		return getOOSEMBlockType(o) == OOSEMBlockType.DESIGN || getOOSEMBlockType(o) == OOSEMBlockType.INTEGRATION;
+	}
+	
+	public static List<Type> getParentBlocksWithType(OOSEMBlockType parentType, OccurrenceDefinition o) {
+		return o.allSupertypes().stream()
+				.filter(t -> (t.getDeclaredName() != null && !t.getDeclaredName().isEmpty()
+						&& !t.getDeclaredName().equals("SpecificationBlock")
+						&& !t.getDeclaredName().equals("DesignBlock")
+						&& !t.getDeclaredName().equals("IntegrationBlock"))
+						&& OOSEMUtils.getOOSEMBlockType(t) == parentType)
+				.collect(Collectors.toList());
 	}
 }
