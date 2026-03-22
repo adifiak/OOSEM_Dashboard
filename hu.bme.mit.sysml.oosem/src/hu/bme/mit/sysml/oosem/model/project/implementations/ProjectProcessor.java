@@ -39,22 +39,6 @@ public class ProjectProcessor {
 		loadBlocks();
 		registerSpecializations();
 		registerFeatures();
-		
-		for(var block: data.blockCatalog.values()) {
-			System.out.println("Block: " + block.getObject());
-			System.out.println("\tProperties: ");
-			for(var p : block.getProperties()) {
-				System.out.println("\t\t" + p.getObject());
-			}
-			System.out.println("\tSubsystems: ");
-			for(var p : block.getSubsystems()) {
-				System.out.println("\t\t" + p.getObject());
-			}
-			System.out.println("\tUntracked features: ");
-			for(var p : block.getUntrackedFeatures()) {
-				System.out.println("\t\t" + p.getObject());
-			}
-		}
 	}
 	
 	private void loadBlocks() {
@@ -99,10 +83,10 @@ public class ProjectProcessor {
 		
 		while(!remaining.isEmpty()) {
 			var blocksToProcess = remaining.stream()
-					.filter(p -> {
-						return p.getParents().stream().noneMatch(remaining::contains);
-					})
-					.collect(Collectors.toSet());
+				.filter(p -> {
+					return p.getParents().stream().noneMatch(remaining::contains);
+				})
+				.collect(Collectors.toSet());
 			
 			if(blocksToProcess.isEmpty()) {
 				throw new RuntimeException("Cycle detected in the model.");
@@ -190,19 +174,20 @@ public class ProjectProcessor {
 	
 	private void processNode(Namespace node) {
 		var block = data.blockCatalog.get(node);
-		if(block == null) {
-			if(OOSEMUtils.getOOSEMBlockType(node) != OOSEMBlockType.NONE && node instanceof OccurrenceDefinition) {
-				block = new OOSEMBlock(node);
-				data.blockCatalog.put(node, block);
-				sortBlock(block);
-			}
+		
+		if(block != null) { return; }
+		
+		if(OOSEMUtils.getOOSEMBlockType(node) != OOSEMBlockType.NONE && node instanceof OccurrenceDefinition) {
+			block = new OOSEMBlock(node);
+			data.blockCatalog.put(node, block);
+			sortBlock(block);
+		}
 				
-			for(var m : node.getOwnedMember()) {
-				if(m instanceof LibraryPackage p && p.getQualifiedName().equals("OOSEM")) { continue; }
+		for(var m : node.getOwnedMember()) {
+			if(m instanceof LibraryPackage p && p.getQualifiedName().equals("OOSEM")) { continue; }
 				
-				if(m instanceof Namespace ns) {
-					processNode(ns);
-				}
+			if(m instanceof Namespace ns) {
+				processNode(ns);
 			}
 		}
 	}

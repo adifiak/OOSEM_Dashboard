@@ -104,7 +104,6 @@ public class OOSEMProjectImpl implements OOSEMProject {
 		return res;
 	}
 
-	
 	private final IProject project;
 	private OOSEMProjectImplData data = new OOSEMProjectImplData();
 }

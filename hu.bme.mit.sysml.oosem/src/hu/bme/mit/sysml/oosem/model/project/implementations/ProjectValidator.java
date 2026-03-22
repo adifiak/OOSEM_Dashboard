@@ -12,7 +12,6 @@ import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
 
 public class ProjectValidator {
 
-	
 	public ProjectValidator(OOSEMProjectImplData data) {
 		this.data = data;
 	}
@@ -27,9 +26,9 @@ public class ProjectValidator {
 	
 	private void validateSpecification() {
 		data.specifications.stream().forEach(block -> {
-				validateSpecificationBlockProperties(block);
-				validateSpecificationBlockSubsystems(block);
-				validateSpecificationBlockUntrackedFeatures(block);
+			validateSpecificationBlockProperties(block);
+			validateSpecificationBlockSubsystems(block);
+			validateSpecificationBlockUntrackedFeatures(block);
 		});
 	}
 
@@ -160,15 +159,15 @@ public class ProjectValidator {
 	}
 
 	private void registerUnintegratedSpecifications(OOSEMBlock integration, Set<OOSEMFeature> unintegratedSpecifications) {
-		if(!unintegratedSpecifications.isEmpty()) {
-			var msg = "Unintegrated specifications:";
-			var first = true;
-			for(var u : unintegratedSpecifications) {
-				if(!first) { msg = msg + ",";first = false;}
-				msg = msg + " " + ((Element)u.getObject()).getName();
-				u.registerWarning("Unintegreted subsystem.");
-			}
-			integration.registerWarning(msg);
+		if(unintegratedSpecifications.isEmpty()) { return; }
+		
+		var msg = "Unintegrated specifications:";
+		var first = true;
+		for(var u : unintegratedSpecifications) {
+			if(!first) { msg = msg + ",";first = false;}
+			msg = msg + " " + ((Element)u.getObject()).getName();
+			u.registerWarning("Unintegreted subsystem.");
 		}
+		integration.registerWarning(msg);
 	}
 }
