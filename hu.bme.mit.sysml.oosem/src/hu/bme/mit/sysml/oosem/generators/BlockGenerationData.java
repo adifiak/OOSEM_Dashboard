@@ -7,12 +7,14 @@ import java.util.Set;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMFeature;
 import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
+import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
 import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 
 public class BlockGenerationData {
-	public BlockGenerationData(OOSEMProject project, OOSEMBlock subject) {
+	public BlockGenerationData(OOSEMProject project, OOSEMBlock subject, OOSEMBlockType targetType) {
 		this.project = project;
 		this.subject = subject;
+		this.targetType = targetType;
 		this.blockName = subject.getName();
 		path = OpenInFileUtils.getFileForEObject(subject.getObject()).getParent().getFullPath().toString();
 		propertyRefinementData = new RefinementData(subject.getProperties());
@@ -34,6 +36,10 @@ public class BlockGenerationData {
 	
 	public OOSEMBlock getSubject() {
 		return subject;
+	}
+	
+	public OOSEMBlockType getTagetType() {
+		return targetType;
 	}
 
 	public OOSEMProject getProject() {
@@ -58,6 +64,7 @@ public class BlockGenerationData {
 
 	private final OOSEMBlock subject;
 	private String blockName = "";
+	private final OOSEMBlockType targetType;
 	private String path = "";
 	private final OOSEMProject project;
 	

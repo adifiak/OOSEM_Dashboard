@@ -9,12 +9,13 @@ import hu.bme.mit.sysml.oosem.generators.BlockGenerationData;
 import hu.bme.mit.sysml.oosem.generators.SysMLFileWriter;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
+import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
 import hu.bme.mit.sysml.oosem.wizards.pages.BlockGenerationPage;
 import hu.bme.mit.sysml.oosem.generators.IGenerator;
 
 public abstract class BlockGenerationWizard extends Wizard {
-	public BlockGenerationWizard(OOSEMProject project, OOSEMBlock block, IGenerator generator) {
-		this.data = new BlockGenerationData(project, block);
+	public BlockGenerationWizard(OOSEMProject project, OOSEMBlock block, OOSEMBlockType targetType, IGenerator generator) {
+		this.data = new BlockGenerationData(project, block, targetType);
 		this.generator = generator;
 	}
 	
