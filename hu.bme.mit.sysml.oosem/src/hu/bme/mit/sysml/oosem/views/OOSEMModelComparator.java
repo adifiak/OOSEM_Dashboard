@@ -2,7 +2,6 @@ package hu.bme.mit.sysml.oosem.views;
 
 import java.util.Comparator;
 
-import org.eclipse.emf.ecore.EObject;
 import org.omg.sysml.lang.sysml.Type;
 
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;

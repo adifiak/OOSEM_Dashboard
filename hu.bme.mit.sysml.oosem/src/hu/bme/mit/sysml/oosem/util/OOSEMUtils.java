@@ -11,11 +11,22 @@ import org.omg.sysml.lang.sysml.OccurrenceUsage;
 import org.omg.sysml.lang.sysml.Type;
 import org.omg.sysml.util.FeatureUtil;
 
-import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
-
 public class OOSEMUtils {
 	public enum OOSEMBlockType {
 		NONE, SPECIFICATION, DESIGN, INTEGRATION
+	}
+	
+	public static OOSEMBlockType getTypeForNextPhase(OOSEMBlockType type) {
+		switch(type) {
+		case SPECIFICATION:
+			return OOSEMBlockType.DESIGN;
+		case DESIGN:
+			return OOSEMBlockType.INTEGRATION;
+		default:
+			return OOSEMBlockType.NONE;
+			
+		
+		}
 	}
 
 	public static OOSEMBlockType getOOSEMBlockType(EObject o) {
@@ -26,7 +37,6 @@ public class OOSEMUtils {
 	        	
 	        	for (var type : types) {
 	        		if(type.effectiveName() == null) {
-	        			System.err.print("Problem gettinng the type of: " + o.toString());
 	        			continue;
 	        		}
 	        		if(type.effectiveName().equals("SpecificationBlock")) {
@@ -108,7 +118,7 @@ public class OOSEMUtils {
 		
 		var type = getOOSEMBlockType(od);
 		if(type != OOSEMBlockType.NONE) {
-			return od.allSupertypes().stream().filter(OOSEMUtils::filterNamelessElements).filter(p -> ((p instanceof OccurrenceDefinition) ? getOOSEMBlockType(p) == type : false)).collect(Collectors.toList());
+			return od.supertypes(true).stream().filter(OOSEMUtils::filterNamelessElements).filter(p -> ((p instanceof OccurrenceDefinition) ? getOOSEMBlockType(p) == type : false)).collect(Collectors.toList());
 		} else {
 			return null;
 		}

@@ -2,7 +2,6 @@ package hu.bme.mit.sysml.oosem.views.listeners;
 
 import java.util.List;
 
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -10,17 +9,13 @@ import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
-import org.omg.sysml.lang.sysml.OccurrenceDefinition;
 
+import hu.bme.mit.sysml.oosem.wizards.DesignToIntegrationWizard;
+import hu.bme.mit.sysml.oosem.wizards.SpecificationToDesignWizard;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
-import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
-import hu.bme.mit.sysml.oosem.wizards.blockGenerators.DesignToIntegrationWizard;
-import hu.bme.mit.sysml.oosem.wizards.blockGenerators.SpecificationToDesignWizard;
-
-import org.omg.sysml.lang.sysml.Type;
 
 public class ContextMenuListener {
 	@FunctionalInterface
@@ -56,7 +51,7 @@ public class ContextMenuListener {
 				var action = new Action("Generate Design Block") {
 					public void run() {
 						WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-								new SpecificationToDesignWizard(((OccurrenceDefinition) block.getObject()), context));
+								new SpecificationToDesignWizard(context, block));
 						dialog.open();
 					}
 				};
@@ -70,7 +65,7 @@ public class ContextMenuListener {
 				var action = new Action("Generate Integration Block") {
 					public void run() {
 						WizardDialog dialog = new WizardDialog(Display.getCurrent().getActiveShell(),
-								new DesignToIntegrationWizard(((OccurrenceDefinition) block.getObject()), context));
+								new DesignToIntegrationWizard(context, block));
 						dialog.open();
 					}
 				};

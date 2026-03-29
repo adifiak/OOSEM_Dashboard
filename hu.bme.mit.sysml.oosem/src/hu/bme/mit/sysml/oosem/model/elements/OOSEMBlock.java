@@ -28,6 +28,13 @@ public class OOSEMBlock extends OOSEMElement{
 		return childs;
 	}
 	
+	public Set<OOSEMBlock> getAllChilds() {
+		var result = new HashSet<OOSEMBlock>();
+		collectAllChilds(result);
+		result.remove(this); // The block is not its own child.
+		return result;
+	}
+	
 	public void registerProperty(OOSEMFeature feature) {
 		properties.add(feature);
 	}
@@ -82,6 +89,16 @@ public class OOSEMBlock extends OOSEMElement{
 	private Set<OOSEMFeature> properties = new HashSet<OOSEMFeature>();
 	private Set<OOSEMFeature> subsystems = new HashSet<OOSEMFeature>();
 	private Set<OOSEMFeature> untrackedFeatures = new HashSet<OOSEMFeature>();
+	
+	private void collectAllChilds(Set<OOSEMBlock> collected) {
+		collected.add(this);
+		
+		for(var child : childs) {
+			if(collected.contains(child)) continue;
+			
+			child.collectAllChilds(collected);
+		}
+	}
 	
 	private void registerInheretedFeature(Set<OOSEMFeature> featureSet, OOSEMFeature featureToInherit) {
 		var inheretedFeature = new OOSEMFeature(featureToInherit);

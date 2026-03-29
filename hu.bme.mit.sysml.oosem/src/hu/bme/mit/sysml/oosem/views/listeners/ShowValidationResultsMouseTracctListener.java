@@ -5,16 +5,13 @@ import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.omg.sysml.lang.sysml.Namespace;
-import org.omg.sysml.lang.sysml.Type;
 
-import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMElement;
 import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
 
 public class ShowValidationResultsMouseTracctListener extends MouseTrackAdapter {
 	public ShowValidationResultsMouseTracctListener(Tree tree, OOSEMProject oosemProject) {
 		this.tree = tree;
-		this.oosemProject = oosemProject;
 	}
 	
 	@Override
@@ -49,5 +46,4 @@ public class ShowValidationResultsMouseTracctListener extends MouseTrackAdapter 
 	}
 	
 	private Tree tree;
-	private OOSEMProject oosemProject;
 }

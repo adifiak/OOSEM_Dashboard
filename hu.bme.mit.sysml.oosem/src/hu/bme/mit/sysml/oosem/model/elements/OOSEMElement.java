@@ -1,6 +1,7 @@
 package hu.bme.mit.sysml.oosem.model.elements;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.emf.ecore.EObject;
@@ -46,6 +47,25 @@ public abstract class OOSEMElement {
 		validationWarnings.add(msg);
 	}
 	
+	@Override
+	public int hashCode() {
+		return Objects.hash(blockType, object, validationErrors, validationWarnings);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		OOSEMElement other = (OOSEMElement) obj;
+		return blockType == other.blockType && Objects.equals(object, other.object)
+				&& Objects.equals(validationErrors, other.validationErrors)
+				&& Objects.equals(validationWarnings, other.validationWarnings);
+	}
+
 	private OOSEMBlockType blockType;
 	protected final EObject object;
 	

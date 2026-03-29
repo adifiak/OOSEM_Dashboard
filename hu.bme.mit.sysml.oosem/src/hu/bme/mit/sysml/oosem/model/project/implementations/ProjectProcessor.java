@@ -127,7 +127,13 @@ public class ProjectProcessor {
 		if(data.featureCatalog.get(feature) != null)
 			throw new RuntimeException("Unexpected occurence of feature: " + feature);
 		
-		var oosemFeature = new OOSEMFeature(feature, block);
+		var supertypes = OOSEMUtils.getOOSEMDefinitionsToUsage((Type)feature);
+		OOSEMBlock type = null;
+		if(supertypes != null && !supertypes.isEmpty()) {
+			type = data.blockCatalog.get(supertypes.getFirst());
+		}
+		
+		var oosemFeature = new OOSEMFeature(feature, block, type);
 		data.featureCatalog.put(feature, oosemFeature);
 		
 		if(oosemFeature.getOOSEMBlockType() == OOSEMBlockType.SPECIFICATION) {
@@ -152,7 +158,13 @@ public class ProjectProcessor {
 		if(data.featureCatalog.get(oldFeature) == null)
 			throw new RuntimeException("Redefined feature missing form catalog: " + oldFeature);
 		
-		var oosemFeature = new OOSEMFeature(newFeature, block, data.featureCatalog.get(oldFeature));
+		var supertypes = OOSEMUtils.getOOSEMDefinitionsToUsage((Type)newFeature);
+		OOSEMBlock type = null;
+		if(supertypes != null && !supertypes.isEmpty()) {
+			type = data.blockCatalog.get(supertypes.getFirst());
+		}
+		
+		var oosemFeature = new OOSEMFeature(newFeature, block, type, data.featureCatalog.get(oldFeature));
 		data.featureCatalog.put(newFeature, oosemFeature);
 		
 		block.redefineFeature(data.featureCatalog.get(oldFeature), oosemFeature);

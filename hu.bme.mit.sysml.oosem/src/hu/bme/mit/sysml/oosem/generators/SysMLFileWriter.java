@@ -1,4 +1,4 @@
-package hu.bme.mit.sysml.oosem.wizards.blockGenerators;
+package hu.bme.mit.sysml.oosem.generators;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,20 +8,18 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 
-import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
-
 public class SysMLFileWriter {
-	public static void writeFile(BasicBlockGenerationData data, String content, OOSEMProject project) {
+	public static void writeFile(BlockGenerationData data, String content) {
 		try {
-        	var path = data.path + "/" + data.blockName + ".sysml";
+        	var path = data.getPath() + "/" + data.getBlockName()+ ".sysml";
         	var file = new File(path);
 			file.createNewFile(); // if file already exists will do nothing
 			var writer = new FileWriter(path);
             writer.write(content);
             writer.close();
             if(buildProjectAutomaticaly) {
-            	project.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
-            	project.getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+            	data.getProject().getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+            	data.getProject().getProject().build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
             }
         } catch (IOException e) {
             e.printStackTrace();

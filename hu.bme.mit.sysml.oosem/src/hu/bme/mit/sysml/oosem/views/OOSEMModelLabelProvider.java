@@ -1,6 +1,5 @@
 package hu.bme.mit.sysml.oosem.views;
 
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EObject;
@@ -16,7 +15,7 @@ import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 import hu.bme.mit.sysml.oosem.util.UIUtils;
 
 public class OOSEMModelLabelProvider extends LabelProvider {
-	OOSEMModelLabelProvider() {}
+	public OOSEMModelLabelProvider() {}
 	
 	public String getText(Object element) {
 		if(element instanceof OOSEMElement oosemElement) 
@@ -35,9 +34,10 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 		
 		if(oosemElement instanceof OOSEMBlock block)
 			res = res + getInPhaseSpecializationDecorator(block);
-		if(oosemElement instanceof OOSEMFeature feature)
+		if(oosemElement instanceof OOSEMFeature feature) {
+			res = res + getTypeDecorator(feature);
 			res = res + getredefinitionDecorator(feature);
-		
+		}
 		if(!oosemElement.getValidationErrors().isEmpty()) {
 			res = res + " ❌";
 		} else if(!oosemElement.getValidationWarnings().isEmpty()) {
@@ -111,11 +111,15 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 		return res;
 	}
 	
-	private String getredefinitionDecorator(OOSEMFeature feature) {
-		var redefines = feature.getRefinedFeature();
-		if(redefines != null)
-			return " redefines " + redefines.getName();
+	private String getTypeDecorator(OOSEMFeature feature) {
+		if (feature.getType() == null) return "";
 		
-		return "";
+		return " : " + feature.getType().getName();
+	}
+	
+	private String getredefinitionDecorator(OOSEMFeature feature) {
+		if(feature.getRefinedFeature() == null) return "";
+		
+		return " redefines " + feature.getRefinedFeature().getName();
 	}
 }

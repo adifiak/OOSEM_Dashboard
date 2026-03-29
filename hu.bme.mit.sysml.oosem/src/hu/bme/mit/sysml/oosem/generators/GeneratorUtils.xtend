@@ -1,4 +1,4 @@
-package hu.bme.mit.sysml.oosem.wizards.blockGenerators
+package hu.bme.mit.sysml.oosem.generators
 
 import org.omg.sysml.lang.sysml.OccurrenceDefinition
 import org.omg.sysml.lang.sysml.PartDefinition

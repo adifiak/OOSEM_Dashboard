@@ -13,7 +13,7 @@ public class CommandHandler extends AbstractHandler {
 	// Set this to true if some of the model has not been loaded properly (will be very slow)
 	public static final boolean RESOLVE_ALL = false;
 	
-	protected final Logger logger = Logger.getLogger("GammaLogger");
+	protected final Logger logger = Logger.getLogger("OOSEMAsistantLogger");
 
 	@Override
 	public Object execute(ExecutionEvent event) {
