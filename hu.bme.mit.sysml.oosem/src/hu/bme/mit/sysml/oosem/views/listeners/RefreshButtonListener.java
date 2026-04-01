@@ -5,10 +5,10 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Listener;
 
 import hu.bme.mit.sysml.oosem.jobs.RefreshViewJob;
-import hu.bme.mit.sysml.oosem.views.OOSEMModelTreeView;
+import hu.bme.mit.sysml.oosem.views.OOSEMProjectViewer;
 
 public class RefreshButtonListener {
-	public RefreshButtonListener(OOSEMModelTreeView view, Button refreshButton, Combo projectSelectionCombo) {
+	public RefreshButtonListener(OOSEMProjectViewer view, Button refreshButton, Combo projectSelectionCombo) {
 		this.view = view;
 		this.refreshButton = refreshButton;
 		this.projectSelectionCombo = projectSelectionCombo;
@@ -23,7 +23,7 @@ public class RefreshButtonListener {
 		};
 	}
 	
-	private OOSEMModelTreeView view;
+	private OOSEMProjectViewer view;
 	private Button refreshButton;
 	private Combo projectSelectionCombo;
 }

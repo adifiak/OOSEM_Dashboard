@@ -39,7 +39,7 @@ import hu.bme.mit.sysml.oosem.views.listeners.RefreshButtonListener;
 import hu.bme.mit.sysml.oosem.views.listeners.ShowValidationResultsMouseTracctListener;
 import hu.bme.mit.sysml.oosem.views.listeners.ContextMenuListener.*;;
 
-public class OOSEMModelTreeView {
+public class OOSEMProjectViewer {
 	@PostConstruct
 	public void createPartControl(Composite parent) {
 		parent.setLayout(new GridLayout(1, false));

@@ -30,19 +30,17 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 
 	private String generateOOSEMElementLabel(OOSEMElement oosemElement) {
 		var res = oosemElement.getName();
-		res = getOOSEMPhaseDecorator(oosemElement) + res;
 		
 		if(oosemElement instanceof OOSEMBlock block)
 			res = res + getInPhaseSpecializationDecorator(block);
 		if(oosemElement instanceof OOSEMFeature feature) {
+			res = getInheretedFeatureDecorator(feature) + res;
 			res = res + getTypeDecorator(feature);
 			res = res + getredefinitionDecorator(feature);
 		}
-		if(!oosemElement.getValidationErrors().isEmpty()) {
-			res = res + " ❌";
-		} else if(!oosemElement.getValidationWarnings().isEmpty()) {
-			res = res + " ⚠️";
-		}
+		
+		res = getOOSEMPhaseDecorator(oosemElement) + res;
+		res = res + getValidationDecorator(oosemElement);
 		
 		return res;
 	}
@@ -94,6 +92,12 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 		}
 	}
 	
+	private String getValidationDecorator(OOSEMElement element) {
+		if(!element.getValidationErrors().isEmpty()) return " ❌";
+		if(!element.getValidationWarnings().isEmpty()) return " ⚠️";
+		return "";
+	}
+	
 	private String getInPhaseSpecializationDecorator(OOSEMBlock block) {
 		var res = "";
 		boolean first = true;
@@ -109,6 +113,10 @@ public class OOSEMModelLabelProvider extends LabelProvider {
 			}
 		}
 		return res;
+	}
+	
+	private String getInheretedFeatureDecorator(OOSEMFeature feature) {	
+		return (feature.getCopiedFeature() == null) ? "" : "^";
 	}
 	
 	private String getTypeDecorator(OOSEMFeature feature) {

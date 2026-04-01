@@ -5,10 +5,10 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
-import hu.bme.mit.sysml.oosem.views.OOSEMModelTreeView;
+import hu.bme.mit.sysml.oosem.views.OOSEMProjectViewer;
 
 public class RefreshViewJob {
-	public static Job createRevreshJob(OOSEMModelTreeView view) {
+	public static Job createRevreshJob(OOSEMProjectViewer view) {
 		Job job = new Job("Refreshing data") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {

@@ -52,7 +52,7 @@
   <extension
         point="org.eclipse.ui.views">
      <e4view
-           class="hu.bme.mit.sysml.oosem.views.OOSEMModelTreeView"
+           class="hu.bme.mit.sysml.oosem.views.OOSEMProjectViewer"
            icon="icons/oosem-dashboard-icon.png"
            id="hu.bme.mit.kerml.atomizer.OOSEMModelTreeView"
            name="OOSEM Assistant"
