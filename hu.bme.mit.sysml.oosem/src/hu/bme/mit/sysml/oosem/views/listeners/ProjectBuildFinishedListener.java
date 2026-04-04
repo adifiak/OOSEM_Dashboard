@@ -4,11 +4,11 @@ import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
 
 import hu.bme.mit.sysml.oosem.jobs.RefreshViewJob;
-import hu.bme.mit.sysml.oosem.views.OOSEMProjectViewer;
+import hu.bme.mit.sysml.oosem.views.OOSEMModelTreeView;
 
 public class ProjectBuildFinishedListener implements IResourceChangeListener {
 
-    public ProjectBuildFinishedListener(OOSEMProjectViewer view, IProject project) {
+    public ProjectBuildFinishedListener(OOSEMModelTreeView view, IProject project) {
         this.view = view;
     	this.project = project;
         ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_BUILD); // register listener
@@ -43,5 +43,5 @@ public class ProjectBuildFinishedListener implements IResourceChangeListener {
     }
     
     private final IProject project;
-    private final OOSEMProjectViewer view;
+    private final OOSEMModelTreeView view;
 }

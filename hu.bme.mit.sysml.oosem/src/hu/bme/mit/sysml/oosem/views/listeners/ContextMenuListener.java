@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Display;
 import hu.bme.mit.sysml.oosem.wizards.DesignToIntegrationWizard;
 import hu.bme.mit.sysml.oosem.wizards.SpecificationToDesignWizard;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
+import hu.bme.mit.sysml.oosem.model.elements.OOSEMFeature;
 import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
 import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
@@ -41,6 +42,12 @@ public class ContextMenuListener {
 				manager.add(new Action("Open in Editor") {
 					public void run() {
 						OpenInFileUtils.openEditorForEObject(block.getObject());
+					}
+				});
+			} else if (item instanceof OOSEMFeature feature) {
+				manager.add(new Action((feature.getCopiedFeature() == null) ? "Open in Editor" : "Open declaration in Editor") {
+					public void run() {
+						OpenInFileUtils.openEditorForEObject(feature.getObject());
 					}
 				});
 			}
