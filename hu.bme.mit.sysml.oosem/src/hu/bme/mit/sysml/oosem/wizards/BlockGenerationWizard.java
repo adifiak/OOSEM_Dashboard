@@ -38,7 +38,8 @@ public abstract class BlockGenerationWizard extends Wizard {
 
             return true;
         } catch (Exception e) {
-            //MessageDialog.openError(getShell(), "Error", e.getMessage());
+            System.err.println(e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

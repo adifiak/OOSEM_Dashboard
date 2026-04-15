@@ -4,6 +4,9 @@ import org.omg.sysml.lang.sysml.Type
 import hu.bme.mit.sysml.oosem.generators.BlockGenerationData
 import hu.bme.mit.sysml.oosem.generators.IGenerator
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType
+import hu.bme.mit.sysml.oosem.generators.BlockGenerationData.RefinementData.RefinementConfiguration.RefinementWorkflow
+import hu.bme.mit.sysml.oosem.util.OOSEMUtils
+import hu.bme.mit.sysml.oosem.generators.BlockGenerationData.RefinementData.RefinementConfiguration
 
 class StandaloneOOSEMBlockGenerator implements IGenerator {
 	override String generate(BlockGenerationData data) {
@@ -20,6 +23,8 @@ class StandaloneOOSEMBlockGenerator implements IGenerator {
 			        
 			        //TODO: Auto-generated block skeleton
 			    }
+			    «generateBlockFramesForFeatures(data.propertyRefinementConfigs)»
+			    «generateBlockFramesForFeatures(data.subsystemRefinementConfigs)»
 			}
 		'''
 	}
@@ -27,7 +32,7 @@ class StandaloneOOSEMBlockGenerator implements IGenerator {
 	def String generateImport(BlockGenerationData.RefinementData data) {
 		return '''
 			«FOR c : data.configurations»
-				«IF c.type !== null »
+				«IF c.workflow == RefinementWorkflow.CHOOSE_EXISTING»
 					private import «(c.type.object as Type).qualifiedName»;
 				«ENDIF»
 			«ENDFOR»
@@ -55,10 +60,27 @@ class StandaloneOOSEMBlockGenerator implements IGenerator {
 	def String generateFeatures(BlockGenerationData.RefinementData data) {
 		return '''
 			«FOR c : data.configurations»
-				«IF c.type === null »
-					//#<OOSEMMetadata> «GeneratorUtils.getSysMLType(c.refinedFeature.object as Type)» <NewName> :>> «c.refinedFeature.name» : <NewType>;
+				«IF c.workflow == RefinementWorkflow.CHOOSE_EXISTING »
+					#«GeneratorUtils.getOOSEMMetadata(c.type.object as Type)» «GeneratorUtils.getSysMLType(c.refinedFeature.object as Type)» «IF c.name !== null && !c.name.isEmpty»«c.name» «ENDIF»:>> «c.refinedFeature.name» : «IF c.requiresIntegration »«c.type.name»«ELSE»«c.newTypeName»«ENDIF»;
 				«ELSE»
-					#«GeneratorUtils.getOOSEMMetadata(c.type.object)» «GeneratorUtils.getSysMLType(c.type.object as Type)» «IF !c.name.isEmpty»«c.name» «ENDIF»:>> «c.refinedFeature.name» : «c.type.name»;
+					«IF c.workflow == RefinementWorkflow.GENERATE_FRAME »
+						«generateOOSEMType(OOSEMUtils.getTypeForNextPhase(c.refinedFeature.OOSEMBlockType))» «GeneratorUtils.getSysMLType(c.refinedFeature.object as Type)» «IF c.name !== null && !c.name.isEmpty»«c.name» «ENDIF»:>> «c.refinedFeature.name» : «c.newTypeName»;
+					«ENDIF»
+				«ENDIF»
+			«ENDFOR»
+		'''
+	}
+	
+
+	
+	def String generateBlockFramesForFeatures(BlockGenerationData.RefinementData data) {
+		return '''
+			«FOR c : data.configurations»
+				«IF c.workflow == RefinementWorkflow.GENERATE_FRAME»
+				
+				«generateOOSEMType(OOSEMUtils.getTypeForNextPhase(c.refinedFeature.OOSEMBlockType))» «GeneratorUtils.getSysMLType(c.refinedFeature.object as Type)» def «c.newTypeName» :> «c.refinedFeature.name» {
+				    //TODO: Auto-generated block skeleton
+				}
 				«ENDIF»
 			«ENDFOR»
 		'''

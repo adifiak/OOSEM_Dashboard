@@ -24,8 +24,6 @@ public class OOSEMUtils {
 			return OOSEMBlockType.INTEGRATION;
 		default:
 			return OOSEMBlockType.NONE;
-			
-		
 		}
 	}
 

@@ -1,6 +1,7 @@
 package hu.bme.mit.sysml.oosem.wizards.pages;
 
 import hu.bme.mit.sysml.oosem.generators.BlockGenerationData;
+import hu.bme.mit.sysml.oosem.generators.BlockGenerationData.RefinementData.RefinementConfiguration.RefinementWorkflow;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils.OOSEMBlockType;
 
@@ -14,6 +15,7 @@ public class IntegrationPage extends RefinementPage {
 				(OOSEMBlock block) -> {
 					return block.getOOSEMBlockType() == OOSEMBlockType.DESIGN || block.getOOSEMBlockType() == OOSEMBlockType.INTEGRATION;
 				},
-				BlockGenerationData::registerSubsystemRefinement);
+				BlockGenerationData::registerSubsystemRefinement,
+				RefinementWorkflow.CHOOSE_EXISTING);
 	}
 }

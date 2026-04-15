@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import hu.bme.mit.sysml.oosem.generators.BlockGenerationData.RefinementData.RefinementConfiguration.RefinementWorkflow;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMFeature;
 import hu.bme.mit.sysml.oosem.model.project.interfaces.OOSEMProject;
@@ -74,7 +75,7 @@ public class BlockGenerationData {
 	public class RefinementData {
 		public RefinementData(Set<OOSEMFeature> originalFeatures) {
 			for(var of : originalFeatures) {
-				configs.add(new RefinementConfiguration(of, null, ""));
+				configs.add(new RefinementConfiguration(of, null, "", RefinementWorkflow.SKIP, ""));
 			}
 		}
 		
@@ -90,10 +91,12 @@ public class BlockGenerationData {
 		private final Set<RefinementConfiguration> configs = new HashSet<>();
 		
 		public static class RefinementConfiguration {
-			public RefinementConfiguration(OOSEMFeature refinedFeature, OOSEMBlock type, String name) {
+			public RefinementConfiguration(OOSEMFeature refinedFeature, OOSEMBlock type, String name, RefinementWorkflow workflow, String newTypeName) {
 				this.refinedFeature = refinedFeature;
 				this.type = type;
 				this.name = name;
+				this.workflow = workflow;
+				this.newTypeName = newTypeName;
 			}
 			
 			public OOSEMFeature getRefinedFeature() {
@@ -105,8 +108,14 @@ public class BlockGenerationData {
 			public String getName() {
 				return name;
 			}
+			public RefinementWorkflow getWorkflow() {
+				return workflow;
+			}
 			public boolean requiresIntegration() {
-				return !name.isEmpty() || type != null;
+				return workflow == RefinementWorkflow.CHOOSE_EXISTING || workflow == RefinementWorkflow.GENERATE_FRAME;
+			}
+			public String getNewTypeName() {
+				return newTypeName;
 			}
 			
 			@Override
@@ -127,6 +136,12 @@ public class BlockGenerationData {
 			private final OOSEMFeature refinedFeature;
 			private final OOSEMBlock type;
 			private final String name;
+			private RefinementWorkflow workflow;
+			private final String newTypeName;
+			
+			public enum RefinementWorkflow {
+				SKIP, CHOOSE_EXISTING, GENERATE_FRAME
+			}
 		}
 	}
 }

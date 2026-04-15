@@ -1,6 +1,7 @@
 package hu.bme.mit.sysml.oosem.wizards.pages;
 
 import hu.bme.mit.sysml.oosem.generators.BlockGenerationData;
+import hu.bme.mit.sysml.oosem.generators.BlockGenerationData.RefinementData.RefinementConfiguration.RefinementWorkflow;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils;
 
@@ -14,6 +15,7 @@ public class PropertyPage extends RefinementPage{
 				(OOSEMBlock block) -> {
 					return block.getOOSEMBlockType() == OOSEMUtils.getTypeForNextPhase(data.getSubject().getOOSEMBlockType());
 				},
-				BlockGenerationData::registerPropertyRefinement);
+				BlockGenerationData::registerPropertyRefinement,
+				RefinementWorkflow.GENERATE_FRAME);
 	}
 }

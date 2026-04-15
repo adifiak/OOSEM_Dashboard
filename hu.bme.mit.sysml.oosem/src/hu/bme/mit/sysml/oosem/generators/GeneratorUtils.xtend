@@ -10,6 +10,8 @@ import org.omg.sysml.lang.sysml.PartUsage
 import org.omg.sysml.lang.sysml.PortUsage
 import org.eclipse.emf.ecore.EObject
 import hu.bme.mit.sysml.oosem.util.OOSEMUtils
+import org.omg.sysml.lang.sysml.Usage
+import org.omg.sysml.lang.sysml.Definition
 
 class GeneratorUtils {
 	def static dispatch String getSysMLType(OccurrenceDefinition o){
@@ -28,6 +30,10 @@ class GeneratorUtils {
 		return "port"
 	}
 	
+	def static dispatch String getSysMLType(Definition o){
+		return ""
+	}
+	
 	
 	
 	def static dispatch String getSysMLType(OccurrenceUsage o){
@@ -44,6 +50,11 @@ class GeneratorUtils {
 	
 	def static dispatch String getSysMLType(PortUsage o){
 		return "port"
+	}
+	
+	def static dispatch String getSysMLType(Usage o){
+		if(o.definition === null || o.definition.empty) { return ""; }
+		return getSysMLType(o.definition.first)
 	}
 	
 	
