@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+
 import hu.bme.mit.sysml.oosem.generators.BlockGenerationData.RefinementData.RefinementConfiguration.RefinementWorkflow;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMBlock;
 import hu.bme.mit.sysml.oosem.model.elements.OOSEMFeature;
@@ -17,7 +20,8 @@ public class BlockGenerationData {
 		this.subject = subject;
 		this.targetType = targetType;
 		this.blockName = subject.getName();
-		path = OpenInFileUtils.getFileForEObject(subject.getObject()).getParent().getFullPath().toString();
+
+		path = OpenInFileUtils.getFileForEObject(subject.getObject()).getParent().getLocation().toString();
 		propertyRefinementData = new RefinementData(subject.getProperties());
 		subsystemRefinementData = new RefinementData(subject.getSubsystems());
 	}
