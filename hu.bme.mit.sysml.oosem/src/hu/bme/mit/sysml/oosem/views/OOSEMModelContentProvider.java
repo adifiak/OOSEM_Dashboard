@@ -1,7 +1,9 @@
 package hu.bme.mit.sysml.oosem.views;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.omg.sysml.lang.sysml.Namespace;
@@ -14,8 +16,8 @@ public class OOSEMModelContentProvider implements ITreeContentProvider {
 	public boolean hasChildren(Object element) {
 		if (element instanceof Set s) {
 			return !s.isEmpty();
-		} else if (element instanceof OOSEMBlock) {
-			return true;
+		} else if (element instanceof OOSEMBlock b) {
+			return !(b.getProperties().isEmpty() && b.getSubsystems().isEmpty() && b.getUntrackedFeatures().isEmpty());
 		} else if (element instanceof OOSEMFeature) {
 			return false;
 		} if (element instanceof OOSEMElementGroup g) {
@@ -31,11 +33,13 @@ public class OOSEMModelContentProvider implements ITreeContentProvider {
 		if (parentElement instanceof Set s) {
 			return s.toArray();
 		} else if (parentElement instanceof OOSEMBlock b) {
-			Object[] childs = { 
-					new OOSEMElementGroup("Properties", b.getProperties()),
-					new OOSEMElementGroup("Subsystems", b.getSubsystems()),
-					new OOSEMElementGroup("UntrackedFeatures", b.getUntrackedFeatures())
-					};
+			Object[] childs = Stream.of(
+			        b.getProperties().isEmpty() ? null : new OOSEMElementGroup("Properties", b.getProperties()),
+			        b.getSubsystems().isEmpty() ? null : new OOSEMElementGroup("Subsystems", b.getSubsystems()),
+			        b.getUntrackedFeatures().isEmpty() ? null : new OOSEMElementGroup("UntrackedFeatures", b.getUntrackedFeatures())
+			    )
+			    .filter(Objects::nonNull)
+			    .toArray();
 			return childs;
 		} else if (parentElement instanceof OOSEMFeature) {
 			return new Object[0]; // For future expansion.

@@ -112,7 +112,7 @@ public class BlockGenerationData {
 				return workflow;
 			}
 			public boolean requiresIntegration() {
-				return workflow == RefinementWorkflow.CHOOSE_EXISTING || workflow == RefinementWorkflow.GENERATE_FRAME;
+				return workflow == RefinementWorkflow.CHOOSE_EXISTING || workflow == RefinementWorkflow.GENERATE_STUB;
 			}
 			public String getNewTypeName() {
 				return newTypeName;
@@ -140,7 +140,7 @@ public class BlockGenerationData {
 			private final String newTypeName;
 			
 			public enum RefinementWorkflow {
-				SKIP, CHOOSE_EXISTING, GENERATE_FRAME
+				SKIP, CHOOSE_EXISTING, GENERATE_STUB
 			}
 		}
 	}

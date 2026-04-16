@@ -62,11 +62,11 @@ class GeneratorUtils {
 	static def String getOOSEMMetadata(EObject o){
 		switch(OOSEMUtils.getOOSEMBlockType(o)){
 			case SPECIFICATION:
-				return "specification"
+				return "#specification"
 			case DESIGN:
-				return "design"
+				return "#design"
 			case INTEGRATION:
-				return "integration"
+				return "#integration"
 			default:
 				return ""
 		}

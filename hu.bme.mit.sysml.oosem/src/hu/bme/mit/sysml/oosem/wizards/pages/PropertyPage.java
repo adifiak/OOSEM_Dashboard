@@ -16,6 +16,6 @@ public class PropertyPage extends RefinementPage{
 					return block.getOOSEMBlockType() == OOSEMUtils.getTypeForNextPhase(data.getSubject().getOOSEMBlockType());
 				},
 				BlockGenerationData::registerPropertyRefinement,
-				RefinementWorkflow.GENERATE_FRAME);
+				RefinementWorkflow.GENERATE_STUB);
 	}
 }

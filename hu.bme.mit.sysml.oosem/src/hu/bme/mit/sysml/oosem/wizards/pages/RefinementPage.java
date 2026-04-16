@@ -21,6 +21,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
@@ -106,42 +107,22 @@ public abstract class RefinementPage extends BlockGenerationPage{
 	private class FeaturePanel {
 
 		FeaturePanel(Composite parent, OOSEMFeature feature, Predicate<OOSEMBlock> refinementTypeFiletringPredicate) {
+			this.feature = feature;
 			container = new Composite(parent, SWT.BORDER);
 			container.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 			container.setLayout(new GridLayout(2, true));
 			
-			this.feature = feature;
-			
-			new Label(container, SWT.NONE).setText("Select workflow:  ");
-			workflowCombo = new ComboViewer(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-			initWorkflowCombo();
-			
-			new Label(container, SWT.NONE).setText("New name for " + feature.getName() + ":");
-            redefinedNameText = new Text(container, SWT.BORDER);
-            redefinedNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-            
-            Image warningImage = FieldDecorationRegistry.getDefault()
-                    .getFieldDecoration(FieldDecorationRegistry.DEC_WARNING)
+			Image warningImage = FieldDecorationRegistry.getDefault()
+					.getFieldDecoration(FieldDecorationRegistry.DEC_WARNING)
                     .getImage();
 			
-			new Label(container, SWT.NONE).setText("Implementations of " + feature.getName() + ":");
-			typeCombo = new ComboViewer(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-            initTypeCombo();
-            typeComboError = new ControlDecoration(typeCombo.getCombo(), SWT.LEFT | SWT.TOP);
-            typeComboError.setImage(warningImage);
-            typeComboError.setDescriptionText("Please select an implementation.");
-            typeComboError.hide();
-            
-            new Label(container, SWT.NONE).setText("Name for new type:");
-            frameTypeNameText = new Text(container, SWT.BORDER);
-            frameTypeNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-            frameTypeNameTextError = new ControlDecoration(frameTypeNameText, SWT.LEFT | SWT.TOP);
-            frameTypeNameTextError.setImage(warningImage);
-            frameTypeNameTextError.setDescriptionText("Please specify a name.");
-            frameTypeNameTextError.hide();
-            frameTypeNameText.addModifyListener(event -> validatePage());
+			initWorkflowControls();
+			initRedefineFeatureNameControls();
+            initChooseExistingControls(warningImage);
+            initStubGenerationControls(warningImage);
             
             workflowCombo.setSelection(new StructuredSelection(defaultWorkflow)); // Select default workflow, here to not mess with uninitialized elements
+            container.layout(true, true);
 		}
 		
 		public RefinementConfiguration getConfiguration() {
@@ -154,42 +135,28 @@ public abstract class RefinementPage extends BlockGenerationPage{
 			RefinementWorkflow selectedWorkflow = (RefinementWorkflow) workflowCombo.getStructuredSelection().getFirstElement();
 			
 			switch(selectedWorkflow) {
-				case CHOOSE_EXISTING:
-					frameTypeNameTextError.hide();
-					if(typeCombo.getStructuredSelection().getFirstElement() != null) {
-						typeComboError.hide();
-						return true;
-					} else {
-						typeComboError.show();
-						return false;
-					}
-				case GENERATE_FRAME:
-					typeComboError.hide();
-					if(!frameTypeNameText.getText().isEmpty()) {
-						frameTypeNameTextError.hide();
-						return true;
-					} else {
-						frameTypeNameTextError.show();
-						return false;
-					}
-				default:
-					frameTypeNameTextError.hide();
-					typeComboError.hide();
-					return true;
+				case CHOOSE_EXISTING: return validateChooseExisting();
+				case GENERATE_STUB: return validateGenerateStub();
+				default: return validateDefaultWorkflow();
 			}
 		}
 		
 		private final OOSEMFeature feature;
 		
 		private final Composite container;
-		private final ComboViewer workflowCombo;
-		private final ComboViewer typeCombo;
-		private final ControlDecoration typeComboError;
-		private final Text redefinedNameText;
-		private final Text frameTypeNameText;
-		private final ControlDecoration frameTypeNameTextError;
+		private ComboViewer workflowCombo;
+		private Label typeComboLabel;
+		private ComboViewer typeCombo;
+		private ControlDecoration typeComboError;
+		private Label redefinedNameTextLabel;
+		private Text redefinedNameText;
+		private Label frameTypeNameLabel;
+		private Text frameTypeNameText;
+		private ControlDecoration frameTypeNameTextError;
 		
-		private void initWorkflowCombo() {
+		private void initWorkflowControls() {
+			new Label(container, SWT.NONE).setText("Select workflow for " + feature.getName() + ":");
+			workflowCombo = new ComboViewer(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 			workflowCombo.setContentProvider(ArrayContentProvider.getInstance());
 	        
 			workflowCombo.setLabelProvider(new LabelProvider() {
@@ -199,7 +166,7 @@ public abstract class RefinementPage extends BlockGenerationPage{
 	                switch (value) {
 	                    case SKIP: return "Skip";
 	                    case CHOOSE_EXISTING: return "Choose Existing";
-	                    case GENERATE_FRAME: return "Generate Frame";
+	                    case GENERATE_STUB: return "Generate Stub";
 	                    default: return value.name();
 	                }
 	            }
@@ -210,6 +177,80 @@ public abstract class RefinementPage extends BlockGenerationPage{
 			
 			workflowCombo.addSelectionChangedListener(workflowSelectionListener());
 		}
+		
+		private void initRedefineFeatureNameControls() {
+			redefinedNameTextLabel = new Label(container, SWT.NONE);
+			redefinedNameTextLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			redefinedNameTextLabel.setText("New name for " + feature.getName() + ":");
+			
+            redefinedNameText = new Text(container, SWT.BORDER);
+            redefinedNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		}
+		
+		private void initChooseExistingControls(Image warningImage) {
+			typeComboLabel = new Label(container, SWT.NONE);
+            typeComboLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            typeComboLabel.setText("Implementations of " + feature.getName() + ":");
+            
+            typeCombo = new ComboViewer(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+            typeCombo.getCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            typeCombo.setContentProvider(ArrayContentProvider.getInstance());
+            typeCombo.setLabelProvider(new OOSEMModelLabelProvider());
+            typeCombo.addSelectionChangedListener(event -> {validatePage();});
+            List<OOSEMBlock> options = new ArrayList<>(feature.getType().getAllChilds().stream()
+            		.filter(refinementTypeFiletringPredicate)
+            		.collect(Collectors.toList()));
+            typeCombo.setInput(options);
+            
+            typeComboError = new ControlDecoration(typeCombo.getCombo(), SWT.LEFT | SWT.TOP);
+            typeComboError.setImage(warningImage);
+            typeComboError.setDescriptionText("Please select an implementation.");
+            typeComboError.hide();
+		}
+		
+		private void initStubGenerationControls(Image warningImage) {
+			frameTypeNameLabel = new Label(container, SWT.NONE);
+            frameTypeNameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            frameTypeNameLabel.setText("Name for new type:");
+            
+            frameTypeNameText = new Text(container, SWT.BORDER);
+            frameTypeNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            
+            frameTypeNameTextError = new ControlDecoration(frameTypeNameText, SWT.LEFT | SWT.TOP);
+            frameTypeNameTextError.setImage(warningImage);
+            frameTypeNameTextError.setDescriptionText("Please specify a name.");
+            frameTypeNameTextError.hide();
+            
+            frameTypeNameText.addModifyListener(event -> validatePage());
+		}
+		
+		private boolean validateDefaultWorkflow() {
+			frameTypeNameTextError.hide();
+			typeComboError.hide();
+			return true;
+		}
+
+		private boolean validateGenerateStub() {
+			typeComboError.hide();
+			if(!frameTypeNameText.getText().isEmpty()) {
+				frameTypeNameTextError.hide();
+				return true;
+			} else {
+				frameTypeNameTextError.show();
+				return false;
+			}
+		}
+
+		private boolean validateChooseExisting() {
+			frameTypeNameTextError.hide();
+			if(typeCombo.getStructuredSelection().getFirstElement() != null) {
+				typeComboError.hide();
+				return true;
+			} else {
+				typeComboError.show();
+				return false;
+			}
+		}
 
 		private ISelectionChangedListener workflowSelectionListener() {
 			return event -> {
@@ -217,34 +258,37 @@ public abstract class RefinementPage extends BlockGenerationPage{
 				
 				switch(selectedWorkflow) {
 					case CHOOSE_EXISTING:
-						typeCombo.getCombo().setEnabled(true);
-						redefinedNameText.setEnabled(true);
-						frameTypeNameText.setEnabled(false);
+						setPanelControlVisibilities(true, true, false);
 						break;
-					case GENERATE_FRAME:
-						typeCombo.getCombo().setEnabled(false);
-						redefinedNameText.setEnabled(true);
-						frameTypeNameText.setEnabled(true);
+					case GENERATE_STUB:
+						setPanelControlVisibilities(false, true, true);
 						break;
 					default:
-						typeCombo.getCombo().setEnabled(false);
-						redefinedNameText.setEnabled(false);
-						frameTypeNameText.setEnabled(false);
+						setPanelControlVisibilities(false, false, false);
 						break;
 				}
-				
+				container.layout();
 				validatePage();
 			};
 		}
 		
-		private void initTypeCombo() {
-			List<OOSEMBlock> options = new ArrayList<>(feature.getType().getAllChilds().stream().filter(refinementTypeFiletringPredicate).collect(Collectors.toList()));
-            
-            typeCombo.setContentProvider(ArrayContentProvider.getInstance());
-            typeCombo.setLabelProvider(new OOSEMModelLabelProvider());
-            typeCombo.setInput(options);
-            typeCombo.getCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-            typeCombo.addSelectionChangedListener(event -> {validatePage();});
+		private void setPanelControlVisibilities(boolean showTypeSelection, boolean showRedefinedName, boolean showFrameTypeName) {
+			setControlVisibility(typeComboLabel, showTypeSelection);
+			setControlVisibility(typeCombo.getControl(), showTypeSelection);
+
+			setControlVisibility(redefinedNameTextLabel, showRedefinedName);
+			setControlVisibility(redefinedNameText, showRedefinedName);
+
+			setControlVisibility(frameTypeNameLabel, showFrameTypeName);
+			setControlVisibility(frameTypeNameText, showFrameTypeName);
+		}
+		
+		private void setControlVisibility(Control control, boolean visible) {
+			Object layoutData = control.getLayoutData();
+		    if (layoutData instanceof GridData) {
+		        ((GridData) layoutData).exclude = !visible;
+		    }
+		    control.setVisible(visible);
 		}
 	}
 
