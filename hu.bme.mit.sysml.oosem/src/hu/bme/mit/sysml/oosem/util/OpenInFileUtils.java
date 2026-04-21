@@ -6,13 +6,16 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.part.ISetSelectionTarget;
+import org.eclipse.xtext.nodemodel.INode;
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils;
+
+import org.eclipse.xtext.ui.editor.XtextEditor;
 
 public class OpenInFileUtils {
 	public static void openEditorForEObject(EObject eObject) {
@@ -25,9 +28,18 @@ public class OpenInFileUtils {
 		try {
 			IEditorPart editor = IDE.openEditor(page, file);
 
-	        if (editor instanceof ISetSelectionTarget) {
-	            ((ISetSelectionTarget) editor).selectReveal(new StructuredSelection(eObject));
-	        }
+			if (editor instanceof XtextEditor) {
+			    XtextEditor xtextEditor = (XtextEditor) editor;
+
+			    xtextEditor.getDocument().readOnly(resource -> {
+			        EObject target = resource.getEObject(EcoreUtil.getURI(eObject).fragment());
+			        INode node = NodeModelUtils.findActualNodeFor(target);
+			        if (node != null) {
+			            xtextEditor.selectAndReveal(node.getOffset(), node.getLength());
+			        }
+			        return null;
+			    });
+			}
 		} catch (PartInitException e) {
 			e.printStackTrace();
 		}

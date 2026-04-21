@@ -1,11 +1,8 @@
-package hu.bme.mit.sysml.oosem.wizards.blockGenerators;
+package hu.bme.mit.sysml.oosem.wizards.pages;
 
 import java.io.File;
 
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -15,20 +12,16 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import hu.bme.mit.sysml.oosem.util.OpenInFileUtils;
+import hu.bme.mit.sysml.oosem.generators.BlockGenerationData;
 
-public class BasicBlockGenerationPage extends WizardPage {
+public class BasicBlockGenerationPage extends BlockGenerationPage {
 	
-	public BasicBlockGenerationPage(BasicBlockGenerationData data, String defaultBlocknamePrefix) {
+	public BasicBlockGenerationPage(BlockGenerationData data, String defaultBlocknamePrefix) {
 		super("Specification to Design Block Wizard");
 		setTitle("Specification to Design Block Page");
         setDescription("Helps in generating the skeleton of a design block based on the underlying specification block.");
         this.data = data;
-        this.defaultBlocknamePrefix = defaultBlocknamePrefix;
-        var dir = OpenInFileUtils.getFileForEObject(data.subjectSpecification).getParent();
-        IWorkspace workspace = ResourcesPlugin.getWorkspace();
-        String path = workspace.getRoot().getLocation().toString();
-        data.path = path + dir.getFullPath().toString();
+        data.setBlockName(defaultBlocknamePrefix + data.getBlockName());
 	}
 	
 	@Override
@@ -39,7 +32,7 @@ public class BasicBlockGenerationPage extends WizardPage {
         new Label(container, SWT.NONE).setText("Definition block name:");
         blockNameText = new Text(container, SWT.BORDER);
         blockNameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        blockNameText.setText(defaultBlocknamePrefix + data.subjectSpecification.getName());
+        blockNameText.setText(data.getBlockName());
         blockNameText.addListener(SWT.Modify, event -> {
             if (event.doit)
             	validateLocation();
@@ -52,7 +45,7 @@ public class BasicBlockGenerationPage extends WizardPage {
 
         outputPathText = new Text(browseComp, SWT.BORDER);
         outputPathText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-        outputPathText.setText(data.path);
+        outputPathText.setText(data.getPath());
         outputPathText.addListener(SWT.Modify, event -> {
             if (event.doit)
             	validateLocation();
@@ -62,7 +55,7 @@ public class BasicBlockGenerationPage extends WizardPage {
         browseBtn.setText("Browse...");
         browseBtn.addListener(SWT.Selection, e -> {
         	DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.SAVE);
-        	dialog.setFilterPath(data.path);
+        	dialog.setFilterPath(data.getPath());
             String path = dialog.open();
             if (path != null) outputPathText.setText(path);
         });
@@ -75,8 +68,8 @@ public class BasicBlockGenerationPage extends WizardPage {
     }
 	
 	public void refreshDataFromUI() {
-		data.blockName = blockNameText.getText();
-		data.path = outputPathText.getText();
+		data.setBlockName(blockNameText.getText());
+		data.setPath(outputPathText.getText());
 	}
 	
 	private void validateLocation() {
@@ -92,7 +85,5 @@ public class BasicBlockGenerationPage extends WizardPage {
 	private Text outputPathText;
 	private Composite container;
 	
-	private BasicBlockGenerationData data;
-	private String defaultBlocknamePrefix;
-
+	private BlockGenerationData data;
 }
