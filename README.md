@@ -1,5 +1,9 @@
 # OOSEM Assistant
 
+## Description
+
+Modeling assistant to support the application of the recursive decomposition pattern of Object-Oriented Systems Engineering Method (OOSEM) in the SysML v2 language.
+
 ## Install instructions
 
 1. Install the [SysML v2 Pilot Implementation](https://github.com/Systems-Modeling/SysML-v2-Pilot-Implementation/tree/master) according to the 'Manual installation' chapter of the README
