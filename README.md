@@ -42,6 +42,11 @@
 
 7. The tool automatically builds the model after block generation and refreshes the dashboard after builds
 
+## Contributors
+
+ * Ádám Fiák
+ * Vince Molnár
+
 ## Known issues
 
 1. The colors of the markers do not render on Windows due to limitations between Eclipse and Windows. (The tool can still be used with monocrome markers.)
