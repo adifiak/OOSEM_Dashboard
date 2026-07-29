@@ -50,7 +50,7 @@
 
 OOSEM Assistant
 
-Copyright (c) 2026 [OOSEM Assistant Authors](contributors)
+Copyright (c) 2026 [OOSEM Assistant Authors](#contributors)
   
 This program is free software: you can redistribute it and/or modify
 it under the terms of the Eclipse Public License as published by
