@@ -42,11 +42,30 @@
 
 7. The tool automatically builds the model after block generation and refreshes the dashboard after builds
 
+## Known issues
+
+1. The colors of the markers do not render on Windows due to limitations between Eclipse and Windows. (The tool can still be used with monocrome markers.)
+
+## Copyright
+
+OOSEM Assistant
+
+Copyright (c) 2026 Budapest University of Technology and Economics
+  
+This program is free software: you can redistribute it and/or modify
+it under the terms of the Eclipse Public License as published by
+ the Eclipse Foundation, version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+Eclipse Public License for more details.
+
+You should have received a copy of the Eclipse Public License
+along with this program.  If not, see <https://www.eclipse.org/legal/epl-2.0/>.
+
+
 ## Contributors
 
  * Ádám Fiák
  * Vince Molnár
-
-## Known issues
-
-1. The colors of the markers do not render on Windows due to limitations between Eclipse and Windows. (The tool can still be used with monocrome markers.)
